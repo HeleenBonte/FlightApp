@@ -130,14 +130,8 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Booking");
 
-            entity.Property(e => e.BookingId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("BookingID");
-            entity.Property(e => e.RouteId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("RouteID");
+            entity.Property(e => e.BookingId).HasColumnName("BookingID");
+            entity.Property(e => e.RouteId).HasColumnName("RouteID");
             entity.Property(e => e.UserId)
                 .HasMaxLength(450)
                 .HasColumnName("UserID");
@@ -167,14 +161,8 @@ public partial class FlightsDbContext : DbContext
                     {
                         j.HasKey("BookingId", "PassengerId");
                         j.ToTable("BookingPassenger");
-                        j.IndexerProperty<string>("BookingId")
-                            .HasMaxLength(50)
-                            .IsUnicode(false)
-                            .HasColumnName("BookingID");
-                        j.IndexerProperty<string>("PassengerId")
-                            .HasMaxLength(50)
-                            .IsUnicode(false)
-                            .HasColumnName("PassengerID");
+                        j.IndexerProperty<int>("BookingId").HasColumnName("BookingID");
+                        j.IndexerProperty<int>("PassengerId").HasColumnName("PassengerID");
                     });
         });
 
@@ -182,10 +170,7 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("BookingClass");
 
-            entity.Property(e => e.BookingClassId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("BookingClassID");
+            entity.Property(e => e.BookingClassId).HasColumnName("BookingClassID");
             entity.Property(e => e.Description)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -197,14 +182,8 @@ public partial class FlightsDbContext : DbContext
 
             entity.ToTable("BookingHistory");
 
-            entity.Property(e => e.HistoryId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("HistoryID");
-            entity.Property(e => e.BookingId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("BookingID");
+            entity.Property(e => e.HistoryId).HasColumnName("HistoryID");
+            entity.Property(e => e.BookingId).HasColumnName("BookingID");
             entity.Property(e => e.UserId)
                 .HasMaxLength(450)
                 .HasColumnName("UserID");
@@ -224,10 +203,7 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("City");
 
-            entity.Property(e => e.CityId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("CityID");
+            entity.Property(e => e.CityId).HasColumnName("CityID");
             entity.Property(e => e.CityName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -237,16 +213,7 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Flight");
 
-            entity.Property(e => e.FlightId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("FlightID");
-            entity.Property(e => e.ArrivalCity)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.DepartureCity)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.Property(e => e.FlightId).HasColumnName("FlightID");
 
             entity.HasOne(d => d.ArrivalCityNavigation).WithMany(p => p.FlightArrivalCityNavigations)
                 .HasForeignKey(d => d.ArrivalCity)
@@ -263,10 +230,7 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Holiday");
 
-            entity.Property(e => e.HolidayId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("HolidayID");
+            entity.Property(e => e.HolidayId).HasColumnName("HolidayID");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -277,10 +241,7 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("MealChoice");
 
             entity.Property(e => e.MealChoiceId).HasColumnName("MealChoiceID");
-            entity.Property(e => e.CityId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("CityID");
+            entity.Property(e => e.CityId).HasColumnName("CityID");
             entity.Property(e => e.Type)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -294,10 +255,7 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Passenger");
 
-            entity.Property(e => e.PassengerId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("PassengerID");
+            entity.Property(e => e.PassengerId).HasColumnName("PassengerID");
             entity.Property(e => e.Country)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -316,18 +274,9 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Route");
 
-            entity.Property(e => e.RouteId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("RouteID");
-            entity.Property(e => e.ArrivalCityId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("ArrivalCityID");
-            entity.Property(e => e.DepartureCityId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("DepartureCityID");
+            entity.Property(e => e.RouteId).HasColumnName("RouteID");
+            entity.Property(e => e.ArrivalCityId).HasColumnName("ArrivalCityID");
+            entity.Property(e => e.DepartureCityId).HasColumnName("DepartureCityID");
 
             entity.HasOne(d => d.ArrivalCity).WithMany(p => p.RouteArrivalCities)
                 .HasForeignKey(d => d.ArrivalCityId)
@@ -354,14 +303,8 @@ public partial class FlightsDbContext : DbContext
                     {
                         j.HasKey("RouteId", "FlightId");
                         j.ToTable("RouteFlightBridge");
-                        j.IndexerProperty<string>("RouteId")
-                            .HasMaxLength(50)
-                            .IsUnicode(false)
-                            .HasColumnName("RouteID");
-                        j.IndexerProperty<string>("FlightId")
-                            .HasMaxLength(50)
-                            .IsUnicode(false)
-                            .HasColumnName("FlightID");
+                        j.IndexerProperty<int>("RouteId").HasColumnName("RouteID");
+                        j.IndexerProperty<int>("FlightId").HasColumnName("FlightID");
                     });
         });
 
@@ -369,23 +312,11 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Ticket");
 
-            entity.Property(e => e.TicketId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("TicketID");
-            entity.Property(e => e.BookingClassId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("BookingClassID");
-            entity.Property(e => e.FlightId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("FlightID");
+            entity.Property(e => e.TicketId).HasColumnName("TicketID");
+            entity.Property(e => e.BookingClassId).HasColumnName("BookingClassID");
+            entity.Property(e => e.FlightId).HasColumnName("FlightID");
             entity.Property(e => e.MealChoiceId).HasColumnName("MealChoiceID");
-            entity.Property(e => e.PassengerId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("PassengerID");
+            entity.Property(e => e.PassengerId).HasColumnName("PassengerID");
 
             entity.HasOne(d => d.BookingClass).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.BookingClassId)

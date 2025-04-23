@@ -5,11 +5,11 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Flight
 {
-    public string FlightId { get; set; } = null!;
+    public int FlightId { get; set; }
 
-    public string ArrivalCity { get; set; } = null!;
+    public int ArrivalCity { get; set; }
 
-    public string DepartureCity { get; set; } = null!;
+    public int DepartureCity { get; set; }
 
     public DateOnly DepartureTime { get; set; }
 

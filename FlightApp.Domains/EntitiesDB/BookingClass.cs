@@ -5,7 +5,7 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class BookingClass
 {
-    public string BookingClassId { get; set; } = null!;
+    public int BookingClassId { get; set; }
 
     public string Description { get; set; } = null!;
 

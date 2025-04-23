@@ -5,13 +5,13 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Ticket
 {
-    public string TicketId { get; set; } = null!;
+    public int TicketId { get; set; }
 
-    public string FlightId { get; set; } = null!;
+    public int FlightId { get; set; }
 
-    public string BookingClassId { get; set; } = null!;
+    public int BookingClassId { get; set; }
 
-    public string PassengerId { get; set; } = null!;
+    public int PassengerId { get; set; }
 
     public int SeatNumber { get; set; }
 

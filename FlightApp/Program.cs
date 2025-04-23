@@ -1,6 +1,12 @@
 using FlightApp.Data;
+using FlightApp.Domains.EntitiesDB;
+using FlightApp.Repositories;
+using FlightApp.Repositories.Interface;
+using FlightApp.Services;
+using FlightApp.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +19,34 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddTransient<IDAO<BookingClass>, BookingClassDAO>();
+builder.Services.AddTransient<IService<BookingClass>, BookingClassService>();
+
+builder.Services.AddTransient<IDAO<Booking>, BookingDAO>();
+builder.Services.AddTransient<IService<Booking>, BookingService>();
+
+builder.Services.AddTransient<IDAO<City>, CityDAO>();
+builder.Services.AddTransient<IService<City>, CityService>();
+
+builder.Services.AddTransient<IDAO<Flight>, FlightDAO>();
+builder.Services.AddTransient<IService<Flight>, FlightService>();
+
+builder.Services.AddTransient<IDAO<Holiday>, HolidayDAO>();
+builder.Services.AddTransient<IService<Holiday>, HolidayService>();
+
+builder.Services.AddTransient<IDAO<MealChoice>, MealChoiceDAO>();
+builder.Services.AddTransient<IService<MealChoice>, MealChoiceService>();
+
+builder.Services.AddTransient<IDAO<Passenger>, PassengerDAO>();
+builder.Services.AddTransient<IService<Passenger>, PassengerService>();
+
+builder.Services.AddTransient<IDAO<Route>, RouteDAO>();
+builder.Services.AddTransient<IService<Route>, RouteService>();
+
+builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
+builder.Services.AddTransient<IService<Ticket>, TicketService>();
+
 
 var app = builder.Build();
 

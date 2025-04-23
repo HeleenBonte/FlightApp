@@ -5,15 +5,15 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Route
 {
-    public string RouteId { get; set; } = null!;
+    public int RouteId { get; set; }
 
     public DateOnly DepartureTime { get; set; }
 
-    public string DepartureCityId { get; set; } = null!;
+    public int DepartureCityId { get; set; }
 
     public DateOnly ArrivalTime { get; set; }
 
-    public string ArrivalCityId { get; set; } = null!;
+    public int ArrivalCityId { get; set; }
 
     public virtual City ArrivalCity { get; set; } = null!;
 

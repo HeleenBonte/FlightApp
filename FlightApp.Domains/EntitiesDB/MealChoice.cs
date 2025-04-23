@@ -9,7 +9,7 @@ public partial class MealChoice
 
     public string Type { get; set; } = null!;
 
-    public string? CityId { get; set; }
+    public int? CityId { get; set; }
 
     public virtual City? City { get; set; }
 

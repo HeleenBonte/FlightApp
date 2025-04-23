@@ -5,7 +5,7 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Holiday
 {
-    public string HolidayId { get; set; } = null!;
+    public int HolidayId { get; set; }
 
     public DateOnly StartDate { get; set; }
 

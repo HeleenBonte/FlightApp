@@ -5,7 +5,7 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Passenger
 {
-    public string PassengerId { get; set; } = null!;
+    public int PassengerId { get; set; }
 
     public string FirstName { get; set; } = null!;
 

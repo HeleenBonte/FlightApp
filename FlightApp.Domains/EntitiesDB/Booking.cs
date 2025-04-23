@@ -5,7 +5,7 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class Booking
 {
-    public string BookingId { get; set; } = null!;
+    public int BookingId { get; set; }
 
     public string UserId { get; set; } = null!;
 
@@ -13,7 +13,7 @@ public partial class Booking
 
     public bool PaymentStatus { get; set; }
 
-    public string RouteId { get; set; } = null!;
+    public int RouteId { get; set; }
 
     public virtual ICollection<BookingHistory> BookingHistories { get; set; } = new List<BookingHistory>();
 

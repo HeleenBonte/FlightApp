@@ -5,7 +5,7 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class City
 {
-    public string CityId { get; set; } = null!;
+    public int CityId { get; set; }
 
     public string CityName { get; set; } = null!;
 
