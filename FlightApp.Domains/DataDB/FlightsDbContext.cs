@@ -50,7 +50,7 @@ public partial class FlightsDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=flightfullstack.database.windows.net; Initial Catalog=Flights; User ID = Beheerder; Password = FullstackServer4Me; Trusted_Connection=True; TrustServerCertificate=True; MultipleActiveResultSets=true;");
+        => optionsBuilder.UseSqlServer("Server=flightfullstack.database.windows.net; Database=Flights; User Id=Beheerder; password=FullstackServer4Me; TrustServerCertificate=True; MultipleActiveResultSets=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -277,16 +277,16 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("MealChoice");
 
             entity.Property(e => e.MealChoiceId).HasColumnName("MealChoiceID");
-            entity.Property(e => e.RouteId)
+            entity.Property(e => e.CityId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasColumnName("RouteID");
+                .HasColumnName("CityID");
             entity.Property(e => e.Type)
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Route).WithMany(p => p.MealChoices)
-                .HasForeignKey(d => d.RouteId)
+            entity.HasOne(d => d.City).WithMany(p => p.MealChoices)
+                .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_MealChoice_Route");
         });
 
