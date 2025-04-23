@@ -16,4 +16,8 @@ public partial class Passenger
     public string Country { get; set; } = null!;
 
     public string Email { get; set; } = null!;
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

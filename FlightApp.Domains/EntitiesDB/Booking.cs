@@ -13,5 +13,13 @@ public partial class Booking
 
     public bool PaymentStatus { get; set; }
 
-    public string RouteCode { get; set; } = null!;
+    public string RouteId { get; set; } = null!;
+
+    public virtual ICollection<BookingHistory> BookingHistories { get; set; } = new List<BookingHistory>();
+
+    public virtual Route Route { get; set; } = null!;
+
+    public virtual AspNetUser User { get; set; } = null!;
+
+    public virtual ICollection<Passenger> Passengers { get; set; } = new List<Passenger>();
 }

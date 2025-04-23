@@ -10,4 +10,6 @@ public partial class BookingClass
     public string Description { get; set; } = null!;
 
     public double PriceFactor { get; set; }
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

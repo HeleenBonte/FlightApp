@@ -10,4 +10,8 @@ public partial class MealChoice
     public string Type { get; set; } = null!;
 
     public string? RouteId { get; set; }
+
+    public virtual Route? Route { get; set; }
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

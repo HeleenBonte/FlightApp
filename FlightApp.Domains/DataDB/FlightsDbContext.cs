@@ -34,8 +34,6 @@ public partial class FlightsDbContext : DbContext
 
     public virtual DbSet<BookingHistory> BookingHistories { get; set; }
 
-    public virtual DbSet<BookingPassenger> BookingPassengers { get; set; }
-
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<Flight> Flights { get; set; }
@@ -47,8 +45,6 @@ public partial class FlightsDbContext : DbContext
     public virtual DbSet<Passenger> Passengers { get; set; }
 
     public virtual DbSet<Route> Routes { get; set; }
-
-    public virtual DbSet<RouteFlightBridge> RouteFlightBridges { get; set; }
 
     public virtual DbSet<Ticket> Tickets { get; set; }
 
@@ -138,12 +134,48 @@ public partial class FlightsDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("BookingID");
-            entity.Property(e => e.RouteCode)
+            entity.Property(e => e.RouteId)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .HasColumnName("RouteID");
             entity.Property(e => e.UserId)
                 .HasMaxLength(450)
                 .HasColumnName("UserID");
+
+            entity.HasOne(d => d.Route).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.RouteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Booking_Route");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Booking_AspNetUsers");
+
+            entity.HasMany(d => d.Passengers).WithMany(p => p.Bookings)
+                .UsingEntity<Dictionary<string, object>>(
+                    "BookingPassenger",
+                    r => r.HasOne<Passenger>().WithMany()
+                        .HasForeignKey("PassengerId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_BookingPassenger_Passenger"),
+                    l => l.HasOne<Booking>().WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_BookingPassenger_Booking"),
+                    j =>
+                    {
+                        j.HasKey("BookingId", "PassengerId");
+                        j.ToTable("BookingPassenger");
+                        j.IndexerProperty<string>("BookingId")
+                            .HasMaxLength(50)
+                            .IsUnicode(false)
+                            .HasColumnName("BookingID");
+                        j.IndexerProperty<string>("PassengerId")
+                            .HasMaxLength(50)
+                            .IsUnicode(false)
+                            .HasColumnName("PassengerID");
+                    });
         });
 
         modelBuilder.Entity<BookingClass>(entity =>
@@ -174,25 +206,18 @@ public partial class FlightsDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("BookingID");
             entity.Property(e => e.UserId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
+                .HasMaxLength(450)
                 .HasColumnName("UserID");
-        });
 
-        modelBuilder.Entity<BookingPassenger>(entity =>
-        {
-            entity.HasKey(e => new { e.BookingId, e.PassengerId });
+            entity.HasOne(d => d.Booking).WithMany(p => p.BookingHistories)
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookingHistory_Booking");
 
-            entity.ToTable("BookingPassenger");
-
-            entity.Property(e => e.BookingId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("BookingID");
-            entity.Property(e => e.PassengerId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("PassengerID");
+            entity.HasOne(d => d.User).WithMany(p => p.BookingHistories)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BookingHistory_AspNetUsers");
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -222,6 +247,16 @@ public partial class FlightsDbContext : DbContext
             entity.Property(e => e.DepartureCity)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.ArrivalCityNavigation).WithMany(p => p.FlightArrivalCityNavigations)
+                .HasForeignKey(d => d.ArrivalCity)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Flight_City_Arrival");
+
+            entity.HasOne(d => d.DepartureCityNavigation).WithMany(p => p.FlightDepartureCityNavigations)
+                .HasForeignKey(d => d.DepartureCity)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Flight_City_Departure");
         });
 
         modelBuilder.Entity<Holiday>(entity =>
@@ -249,14 +284,20 @@ public partial class FlightsDbContext : DbContext
             entity.Property(e => e.Type)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Route).WithMany(p => p.MealChoices)
+                .HasForeignKey(d => d.RouteId)
+                .HasConstraintName("FK_MealChoice_Route");
         });
 
         modelBuilder.Entity<Passenger>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Passenger");
+            entity.ToTable("Passenger");
 
+            entity.Property(e => e.PassengerId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("PassengerID");
             entity.Property(e => e.Country)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -269,10 +310,6 @@ public partial class FlightsDbContext : DbContext
             entity.Property(e => e.LastName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.PassengerId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("PassengerID");
         });
 
         modelBuilder.Entity<Route>(entity =>
@@ -291,22 +328,41 @@ public partial class FlightsDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("DepartureCityID");
-        });
 
-        modelBuilder.Entity<RouteFlightBridge>(entity =>
-        {
-            entity.HasKey(e => new { e.RouteId, e.FlightId });
+            entity.HasOne(d => d.ArrivalCity).WithMany(p => p.RouteArrivalCities)
+                .HasForeignKey(d => d.ArrivalCityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Route_City_Arrival");
 
-            entity.ToTable("RouteFlightBridge");
+            entity.HasOne(d => d.DepartureCity).WithMany(p => p.RouteDepartureCities)
+                .HasForeignKey(d => d.DepartureCityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Route_City_Departure");
 
-            entity.Property(e => e.RouteId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("RouteID");
-            entity.Property(e => e.FlightId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("FlightID");
+            entity.HasMany(d => d.Flights).WithMany(p => p.Routes)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RouteFlightBridge",
+                    r => r.HasOne<Flight>().WithMany()
+                        .HasForeignKey("FlightId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_RouteFlightBridge_Flight"),
+                    l => l.HasOne<Route>().WithMany()
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_RouteFlightBridge_Route"),
+                    j =>
+                    {
+                        j.HasKey("RouteId", "FlightId");
+                        j.ToTable("RouteFlightBridge");
+                        j.IndexerProperty<string>("RouteId")
+                            .HasMaxLength(50)
+                            .IsUnicode(false)
+                            .HasColumnName("RouteID");
+                        j.IndexerProperty<string>("FlightId")
+                            .HasMaxLength(50)
+                            .IsUnicode(false)
+                            .HasColumnName("FlightID");
+                    });
         });
 
         modelBuilder.Entity<Ticket>(entity =>
@@ -330,6 +386,26 @@ public partial class FlightsDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("PassengerID");
+
+            entity.HasOne(d => d.BookingClass).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.BookingClassId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_BookingClass");
+
+            entity.HasOne(d => d.Flight).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.FlightId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_Flight");
+
+            entity.HasOne(d => d.MealChoice).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.MealChoiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_MealChoice");
+
+            entity.HasOne(d => d.Passenger).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.PassengerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_Passenger");
         });
 
         OnModelCreatingPartial(modelBuilder);

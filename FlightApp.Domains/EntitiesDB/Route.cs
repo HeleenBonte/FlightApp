@@ -14,4 +14,14 @@ public partial class Route
     public DateOnly ArrivalTime { get; set; }
 
     public string ArrivalCityId { get; set; } = null!;
+
+    public virtual City ArrivalCity { get; set; } = null!;
+
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    public virtual City DepartureCity { get; set; } = null!;
+
+    public virtual ICollection<MealChoice> MealChoices { get; set; } = new List<MealChoice>();
+
+    public virtual ICollection<Flight> Flights { get; set; } = new List<Flight>();
 }

@@ -18,4 +18,12 @@ public partial class Flight
     public int Seating { get; set; }
 
     public double Price { get; set; }
+
+    public virtual City ArrivalCityNavigation { get; set; } = null!;
+
+    public virtual City DepartureCityNavigation { get; set; } = null!;
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<Route> Routes { get; set; } = new List<Route>();
 }
