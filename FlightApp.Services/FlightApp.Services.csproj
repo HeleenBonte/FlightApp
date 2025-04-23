@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlightApp.Domains\FlightApp.Domains.csproj" />
+    <ProjectReference Include="..\FlightApp.Repositories\FlightApp.Repositories.csproj" />
+  </ItemGroup>
+
 </Project>
