@@ -1,18 +1,35 @@
-﻿using FlightApp.Domains.EntitiesDB;
+﻿using FlightApp.Domains.DataDB;
+using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories.Interface;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
     public class TicketDAO : IDAO<Ticket>
     {
-        public Task AddAsync(Ticket entity)
+        private readonly FlightsDbContext dbContext;
+
+        public TicketDAO(FlightsDbContext _dbContext)
         {
-            throw new NotImplementedException();
+            dbContext = _dbContext;
+        }
+
+        public async Task AddAsync(Ticket entity)
+        {
+            try
+            {
+                await dbContext.Tickets.AddAsync(entity);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(Ticket entity)
@@ -20,14 +37,30 @@ namespace FlightApp.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Ticket?> FindByIdAsync(int Id)
+        public async Task<Ticket?> FindByIdAsync(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.Tickets.Where(e => e.TicketId == Id).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error DAO");
+                throw;
+            }
         }
 
-        public Task<IEnumerable<Ticket>?> GetAllAsync()
+        public async Task<IEnumerable<Ticket>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.Tickets.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
         }
 
         public Task UpdateAsync(Ticket entity)

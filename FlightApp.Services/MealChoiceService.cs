@@ -1,38 +1,28 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using System;
+using FlightApp.Repositories.Interface;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
     public class MealChoiceService : IService<MealChoice>
     {
-        public Task AddAsync(MealChoice entity)
+        private readonly IDAO<MealChoice> _mealChoiceDAO;
+
+        public MealChoiceService(IDAO<MealChoice> mealChoiceDAO)
         {
-            throw new NotImplementedException();
+            _mealChoiceDAO = mealChoiceDAO;
         }
 
-        public Task DeleteAsync(MealChoice entity)
+        public async Task<IEnumerable<MealChoice>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _mealChoiceDAO.GetAllAsync();
         }
 
-        public Task<MealChoice?> FindByIdAsync(int Id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<MealChoice>?> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(MealChoice entity)
-        {
-            throw new NotImplementedException();
-        }
+        public Task AddAsync(MealChoice entity) => throw new NotImplementedException();
+        public Task DeleteAsync(MealChoice entity) => throw new NotImplementedException();
+        public Task<MealChoice?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public Task UpdateAsync(MealChoice entity) => throw new NotImplementedException();
     }
 }

@@ -1,38 +1,28 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using System;
+using FlightApp.Repositories.Interface;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
     public class RouteService : IService<Route>
     {
-        public Task AddAsync(Route entity)
+        private readonly IDAO<Route> _routeDAO;
+
+        public RouteService(IDAO<Route> routeDAO)
         {
-            throw new NotImplementedException();
+            _routeDAO = routeDAO;
         }
 
-        public Task DeleteAsync(Route entity)
+        public async Task<IEnumerable<Route>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _routeDAO.GetAllAsync();
         }
 
-        public Task<Route?> FindByIdAsync(int Id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Route>?> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(Route entity)
-        {
-            throw new NotImplementedException();
-        }
+        public Task AddAsync(Route entity) => throw new NotImplementedException();
+        public Task DeleteAsync(Route entity) => throw new NotImplementedException();
+        public Task<Route?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public Task UpdateAsync(Route entity) => throw new NotImplementedException();
     }
 }

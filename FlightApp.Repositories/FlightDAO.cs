@@ -1,18 +1,35 @@
-﻿using FlightApp.Domains.EntitiesDB;
+﻿using FlightApp.Domains.DataDB;
+using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories.Interface;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
     public class FlightDAO : IDAO<Flight>
     {
-        public Task AddAsync(Flight entity)
+        private readonly FlightsDbContext dbContext;
+
+        public FlightDAO(FlightsDbContext _dbContext)
         {
-            throw new NotImplementedException();
+            dbContext = _dbContext;
+        }
+
+        public async Task AddAsync(Flight entity)
+        {
+            try
+            {
+                await dbContext.Flights.AddAsync(entity);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(Flight entity)
@@ -20,14 +37,37 @@ namespace FlightApp.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Flight?> FindByIdAsync(int Id)
+        public async Task<Flight?> FindByIdAsync(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.Flights
+                    .Include(f => f.ArrivalCityNavigation)
+                    .Include(f => f.DepartureCityNavigation)
+                    .Where(f => f.FlightId == Id)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error DAO");
+                throw;
+            }
         }
 
-        public Task<IEnumerable<Flight>?> GetAllAsync()
+        public async Task<IEnumerable<Flight>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.Flights
+                    .Include(f => f.ArrivalCityNavigation)
+                    .Include(f => f.DepartureCityNavigation)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
         }
 
         public Task UpdateAsync(Flight entity)

@@ -1,38 +1,28 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using System;
+using FlightApp.Repositories.Interface;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
     public class BookingService : IService<Booking>
     {
-        public Task AddAsync(Booking entity)
+        private readonly IDAO<Booking> _bookingDAO;
+
+        public BookingService(IDAO<Booking> bookingDAO)
         {
-            throw new NotImplementedException();
+            _bookingDAO = bookingDAO;
         }
 
-        public Task DeleteAsync(Booking entity)
+        public async Task<IEnumerable<Booking>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _bookingDAO.GetAllAsync();
         }
 
-        public Task<Booking?> FindByIdAsync(int Id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Booking>?> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(Booking entity)
-        {
-            throw new NotImplementedException();
-        }
+        public Task AddAsync(Booking entity) => throw new NotImplementedException();
+        public Task DeleteAsync(Booking entity) => throw new NotImplementedException();
+        public Task<Booking?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public Task UpdateAsync(Booking entity) => throw new NotImplementedException();
     }
 }

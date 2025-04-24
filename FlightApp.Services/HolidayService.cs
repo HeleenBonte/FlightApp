@@ -1,38 +1,28 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using System;
+using FlightApp.Repositories.Interface;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
     public class HolidayService : IService<Holiday>
     {
-        public Task AddAsync(Holiday entity)
+        private readonly IDAO<Holiday> _holidayDAO;
+
+        public HolidayService(IDAO<Holiday> holidayDAO)
         {
-            throw new NotImplementedException();
+            _holidayDAO = holidayDAO;
         }
 
-        public Task DeleteAsync(Holiday entity)
+        public async Task<IEnumerable<Holiday>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _holidayDAO.GetAllAsync();
         }
 
-        public Task<Holiday?> FindByIdAsync(int Id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Holiday>?> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(Holiday entity)
-        {
-            throw new NotImplementedException();
-        }
+        public Task AddAsync(Holiday entity) => throw new NotImplementedException();
+        public Task DeleteAsync(Holiday entity) => throw new NotImplementedException();
+        public Task<Holiday?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public Task UpdateAsync(Holiday entity) => throw new NotImplementedException();
     }
 }

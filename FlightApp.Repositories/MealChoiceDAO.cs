@@ -1,18 +1,35 @@
-﻿using FlightApp.Domains.EntitiesDB;
+﻿using FlightApp.Domains.DataDB;
+using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories.Interface;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
     public class MealChoiceDAO : IDAO<MealChoice>
     {
-        public Task AddAsync(MealChoice entity)
+        private readonly FlightsDbContext dbContext;
+
+        public MealChoiceDAO(FlightsDbContext _dbContext)
         {
-            throw new NotImplementedException();
+            dbContext = _dbContext;
+        }
+
+        public async Task AddAsync(MealChoice entity)
+        {
+            try
+            {
+                await dbContext.MealChoices.AddAsync(entity);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(MealChoice entity)
@@ -20,14 +37,30 @@ namespace FlightApp.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<MealChoice?> FindByIdAsync(int Id)
+        public async Task<MealChoice?> FindByIdAsync(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.MealChoices.Where(e => e.MealChoiceId == Id).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error DAO");
+                throw;
+            }
         }
 
-        public Task<IEnumerable<MealChoice>?> GetAllAsync()
+        public async Task<IEnumerable<MealChoice>?> GetAllAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await dbContext.MealChoices.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
         }
 
         public Task UpdateAsync(MealChoice entity)
