@@ -1,16 +1,16 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using FlightApp.Repositories.Interface;
+using FlightApp.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
-    public class FlightService : IService<Flight>
+    public class FlightService : IFlightService
     {
-        private readonly IDAO<Flight> _flightDAO;
+        private readonly IFlightDAO _flightDAO;
 
-        public FlightService(IDAO<Flight> flightDAO)
+        public FlightService(IFlightDAO flightDAO)
         {
             _flightDAO = flightDAO;
         }
@@ -19,6 +19,11 @@ namespace FlightApp.Services
         {
             return await _flightDAO.GetAllAsync();
         }
+        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId)
+        {
+            return await _flightDAO.GetFlightsByCitiesID(arrivalCityId, departureCityId);
+        }
+
 
         public Task AddAsync(Flight entity) => throw new NotImplementedException();
         public Task DeleteAsync(Flight entity) => throw new NotImplementedException();

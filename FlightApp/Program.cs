@@ -1,7 +1,9 @@
 using FlightApp.Data;
+using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories;
 using FlightApp.Repositories.Interface;
+using FlightApp.Repositories.Interfaces;
 using FlightApp.Services;
 using FlightApp.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<FlightsDbContext>(options =>
+       options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -29,8 +34,8 @@ builder.Services.AddTransient<IService<Booking>, BookingService>();
 builder.Services.AddTransient<IDAO<City>, CityDAO>();
 builder.Services.AddTransient<IService<City>, CityService>();
 
-builder.Services.AddTransient<IDAO<Flight>, FlightDAO>();
-builder.Services.AddTransient<IService<Flight>, FlightService>();
+builder.Services.AddTransient<IFlightDAO, FlightDAO>();
+builder.Services.AddTransient<IFlightService, FlightService>();
 
 builder.Services.AddTransient<IDAO<Holiday>, HolidayDAO>();
 builder.Services.AddTransient<IService<Holiday>, HolidayService>();
@@ -47,6 +52,7 @@ builder.Services.AddTransient<IService<Route>, RouteService>();
 builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
 builder.Services.AddTransient<IService<Ticket>, TicketService>();
 
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 

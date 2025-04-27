@@ -1,0 +1,52 @@
+﻿@model FlightApp.ViewModels.FlightsCityVM
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>GetFlightsByArrivalCity</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Index"
+              data-ajax="true"
+              data-ajax-method="POST"
+              data-ajax-mode="replace"
+              data-ajax-update="#content"
+              data-ajax-loading="#divloading"
+              data-ajax-success="Success"
+              data-ajax-failure="Failure">
+
+            <div class="form-group">
+                <label for="ArrivalCityID" class="control-label"></label>
+                <select asp-for="ArrivalCityID" asp-items="@Model.Cities">
+                    <option>Please select</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="DepartureCityID" class="control-label"></label>
+                <select asp-for="DepartureCityID" asp-items="@Model.Cities">
+                    <option>Please select</option>
+                </select>
+            </div>
+
+
+        </form>
+    </div>
+</div>
+<div id="content">
+    <p>No Cities have been selected yet</p>
+</div>
+ 
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        $("#DepartureCityID").on("change", () => {
+
+            $("form").trigger("submit");
+        });
+    </script>
+}
