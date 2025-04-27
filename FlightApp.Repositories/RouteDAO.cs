@@ -1,6 +1,7 @@
 ﻿using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories.Interface;
+using FlightApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
-    public class RouteDAO : IDAO<Route>
+    public class RouteDAO : IRouteDAO
     {
         private readonly FlightsDbContext dbContext;
 
@@ -55,6 +56,23 @@ namespace FlightApp.Repositories
             try
             {
                 return await dbContext.Routes.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId)
+        {
+            try
+            {
+                return await dbContext.Routes
+                    .Include(f => f.ArrivalCity)
+                    .Include(f => f.DepartureCity)
+                    .Where(f => f.ArrivalCityId == arrivalCityId && f.DepartureCityId == departureCityId)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {

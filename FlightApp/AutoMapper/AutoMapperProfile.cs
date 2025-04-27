@@ -31,6 +31,14 @@ namespace FlightApp.AutoMapper
             //City
             CreateMap<City, CityVM>();
 
+            //Route
+            CreateMap<Domains.EntitiesDB.Route, RouteVM>().ForMember(dest => dest.DepartureCity,
+                opts => opts.MapFrom(
+                    src => src.DepartureCity.CityName))
+                .ForMember(dest => dest.ArrivalCity,
+                opts => opts.MapFrom(
+                    src => src.ArrivalCity.CityName));
+
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

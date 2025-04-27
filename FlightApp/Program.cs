@@ -46,8 +46,8 @@ builder.Services.AddTransient<IService<MealChoice>, MealChoiceService>();
 builder.Services.AddTransient<IDAO<Passenger>, PassengerDAO>();
 builder.Services.AddTransient<IService<Passenger>, PassengerService>();
 
-builder.Services.AddTransient<IDAO<Route>, RouteDAO>();
-builder.Services.AddTransient<IService<Route>, RouteService>();
+builder.Services.AddTransient<IRouteDAO, RouteDAO>();
+builder.Services.AddTransient<IRouteService, RouteService>();
 
 builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
 builder.Services.AddTransient<IService<Ticket>, TicketService>();

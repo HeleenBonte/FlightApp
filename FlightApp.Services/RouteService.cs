@@ -1,16 +1,17 @@
 ﻿using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
-using FlightApp.Repositories.Interface;
+using FlightApp.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FlightApp.Repositories;
 
 namespace FlightApp.Services
 {
-    public class RouteService : IService<Route>
+    public class RouteService : IRouteService
     {
-        private readonly IDAO<Route> _routeDAO;
+        private readonly IRouteDAO _routeDAO;
 
-        public RouteService(IDAO<Route> routeDAO)
+        public RouteService(IRouteDAO routeDAO)
         {
             _routeDAO = routeDAO;
         }
@@ -24,5 +25,10 @@ namespace FlightApp.Services
         public Task DeleteAsync(Route entity) => throw new NotImplementedException();
         public Task<Route?> FindByIdAsync(int id) => throw new NotImplementedException();
         public Task UpdateAsync(Route entity) => throw new NotImplementedException();
+
+        public async Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId)
+        {
+            return await _routeDAO.GetRoutesByCitiesID(arrivalCityId, departureCityId);
+        }
     }
 }

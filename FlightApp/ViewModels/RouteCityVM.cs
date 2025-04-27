@@ -2,12 +2,11 @@
 
 namespace FlightApp.ViewModels
 {
-    public class FlightsCityVM
+    public class RouteCityVM
     {
         public int ArrivalCityID { get; set; }
         public IEnumerable<SelectListItem>? Cities { get; set; }
         public int DepartureCityID { get; set; }
-        public IEnumerable<FlightVM>? Flights { get; set; }
-        public DateTime DepartureDate { get; set; }
+        public IEnumerable<RouteVM>? Routes { get; set; }
     }
 }

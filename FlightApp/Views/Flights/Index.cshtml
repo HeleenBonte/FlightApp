@@ -4,8 +4,10 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>GetFlightsByArrivalCity</h1>
+<h1>Index</h1>
 
+<h4>FlightsCityVM</h4>
+<hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Index"
@@ -18,35 +20,45 @@
               data-ajax-failure="Failure">
 
             <div class="form-group">
-                <label for="ArrivalCityID" class="control-label"></label>
+                <label for="ArrivalCityID" class="control-label">Arrival City</label>
                 <select asp-for="ArrivalCityID" asp-items="@Model.Cities">
                     <option>Please select</option>
                 </select>
             </div>
+
             <div class="form-group">
-                <label for="DepartureCityID" class="control-label"></label>
+                <label for="DepartureCityID" class="control-label">Departure City</label>
                 <select asp-for="DepartureCityID" asp-items="@Model.Cities">
                     <option>Please select</option>
                 </select>
             </div>
 
-
+            <div class="form-group">
+                <label for="DepartureDate" class="control-label">Departure Date</label>
+                <input asp-for="DepartureDate" class="form-control" />
+                <span asp-validation-for="DepartureDate" class="text-danger"></span>
+            </div>
+            <button id="submit" type="submit" class="btn btn-primary">Search</button>
         </form>
     </div>
 </div>
+
 <div id="content">
     <p>No Cities have been selected yet</p>
 </div>
- 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
-    <script>
-        $("#DepartureCityID").on("change", () => {
 
-            $("form").trigger("submit");
-        });
-    </script>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+<script>
+     $( function() {
+        $( "#DepartureDate" ).datepicker();
+      } );
+    $("#submit").on("click", () => {
+
+        $("form").trigger("submit");
+    });
+</script>
+}
+

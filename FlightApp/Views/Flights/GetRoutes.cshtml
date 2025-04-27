@@ -1,0 +1,53 @@
+﻿@model FlightApp.ViewModels.RouteCityVM
+
+@{
+    ViewData["Title"] = "GetRoutes";
+}
+
+<h1>GetRoutes</h1>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="GetRoutes"
+              data-ajax="true"
+              data-ajax-method="POST"
+              data-ajax-mode="replace"
+              data-ajax-update="#content"
+              data-ajax-loading="#divloading"
+              data-ajax-success="Success"
+              data-ajax-failure="Failure">
+
+            <div class="form-group">
+                <label for="DepartureCityID" class="control-label">Departure City</label>
+                <select asp-for="DepartureCityID" asp-items="@Model.Cities">
+                    <option>Please select</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ArrivalCityID" class="control-label">Arrival City</label>
+                <select asp-for="ArrivalCityID" asp-items="@Model.Cities">
+                    <option>Please select</option>
+                </select>
+            </div>
+            <button id="submit" type="submit" class="btn btn-primary">Search</button>
+
+
+        </form>
+    </div>
+</div>
+<div id="content">
+    <p>No Cities have been selected yet</p>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        $("#submit").on("click", () => {
+
+            $("form").trigger("submit");
+        });
+    </script>
+}
