@@ -9,7 +9,7 @@ public partial class Booking
 
     public string UserId { get; set; } = null!;
 
-    public DateOnly BookingTime { get; set; }
+    public DateTime BookingTime { get; set; }
 
     public bool PaymentStatus { get; set; }
 

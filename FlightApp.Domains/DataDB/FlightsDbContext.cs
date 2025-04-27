@@ -131,6 +131,7 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("Booking");
 
             entity.Property(e => e.BookingId).HasColumnName("BookingID");
+            entity.Property(e => e.BookingTime).HasColumnType("datetime");
             entity.Property(e => e.RouteId).HasColumnName("RouteID");
             entity.Property(e => e.UserId)
                 .HasMaxLength(450)
@@ -214,6 +215,8 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("Flight");
 
             entity.Property(e => e.FlightId).HasColumnName("FlightID");
+            entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
+            entity.Property(e => e.DepartureTime).HasColumnType("datetime");
 
             entity.HasOne(d => d.ArrivalCityNavigation).WithMany(p => p.FlightArrivalCityNavigations)
                 .HasForeignKey(d => d.ArrivalCity)
@@ -276,7 +279,9 @@ public partial class FlightsDbContext : DbContext
 
             entity.Property(e => e.RouteId).HasColumnName("RouteID");
             entity.Property(e => e.ArrivalCityId).HasColumnName("ArrivalCityID");
+            entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
             entity.Property(e => e.DepartureCityId).HasColumnName("DepartureCityID");
+            entity.Property(e => e.DepartureTime).HasColumnType("datetime");
 
             entity.HasOne(d => d.ArrivalCity).WithMany(p => p.RouteArrivalCities)
                 .HasForeignKey(d => d.ArrivalCityId)
