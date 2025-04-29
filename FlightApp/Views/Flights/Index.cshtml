@@ -47,7 +47,7 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+
 <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
@@ -57,15 +57,15 @@
         $("form").trigger("submit");
     });
 
-    $(function () {
+    $( function () {
         $("#DepartureDate").datepicker({
             showOtherMonths: true,
             selectOtherMonths: true,
-            numberOfMonths: 3,
+            minDate: 0,
             maxDate: '+6M',
             dateFormat: 'yy-mm-dd',
-        })
+        });
     });
 </script>
-
+}
 
