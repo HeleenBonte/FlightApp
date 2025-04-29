@@ -12,7 +12,7 @@ namespace FlightApp.Controllers
         private IFlightService flightService;
         private IService<City> cityService;
         private IRouteService routeService;
-
+            
         private readonly IMapper _mapper;
 
         public FlightsController(IMapper mapper, IFlightService flightservice, IService<City> cityservice, IRouteService routeservice)

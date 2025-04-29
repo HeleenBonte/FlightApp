@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace FlightApp.ViewModels
 {
@@ -8,6 +9,8 @@ namespace FlightApp.ViewModels
         public IEnumerable<SelectListItem>? Cities { get; set; }
         public int DepartureCityID { get; set; }
         public IEnumerable<FlightVM>? Flights { get; set; }
-        public DateTime DepartureDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateOnly DepartureDate { get; set; } 
     }
 }
