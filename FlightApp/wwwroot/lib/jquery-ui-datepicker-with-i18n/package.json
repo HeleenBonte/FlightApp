@@ -1,0 +1,47 @@
+{
+	"name": "jquery-ui-datepicker-with-i18n",
+	"title": "jQuery UI Datepicker with i18n",
+	"description": "Internationalization files for jQuery UI Datepicker",
+	"version": "1.10.4",
+	"homepage": "http://jqueryui.com",
+	"author": {
+		"name": "jQuery Foundation and other contributors",
+		"url": "https://github.com/jquery/jquery-ui/blob/master/AUTHORS.txt"
+	},
+	"main": "ui/widgets/datepicker.js",
+	"maintainers": [
+		{
+			"name": "Cansin Yildiz",
+			"email": "cansinyildiz@gmail.com",
+			"url": "http://cansinyildiz.com"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/jquery/jquery-ui.git"
+	},
+	"license": "MIT",
+	"scripts": {
+		"test": "grunt"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"grunt": "0.4.1",
+		"grunt-contrib-jshint": "0.7.1",
+		"grunt-contrib-uglify": "0.1.1",
+		"grunt-contrib-concat": "0.1.3",
+		"grunt-contrib-qunit": "0.2.0",
+		"grunt-contrib-csslint": "0.1.1",
+		"grunt-contrib-cssmin": "0.4.2",
+		"grunt-compare-size": "0.4.0-rc.3",
+		"grunt-html": "0.3.3",
+		"grunt-git-authors": "1.2.0",
+		"rimraf": "2.1.4",
+		"testswarm": "1.1.0"
+	},
+	"keywords": [],
+	"files": [
+		"ui/i18n/**",
+		"ui/jquery.ui.datepicker.js"
+	]
+}

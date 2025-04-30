@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using FlightApp.Data;
 using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
@@ -12,8 +14,17 @@ using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Key Vault settings
+string? vaultUrl = builder.Configuration["KeyVault:VaultUrl"];
+string? secretName = builder.Configuration["KeyVault:SecretName"];
+
+// Maak een client met default credentials (werkt lokaal met ingelogde gebruiker, en in Azure met managed identity)
+var client = new SecretClient(new Uri(vaultUrl), new DefaultAzureCredential());
+
+KeyVaultSecret secret = client.GetSecret(secretName);
+
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"] = secret.Value;
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<FlightsDbContext>(options =>
