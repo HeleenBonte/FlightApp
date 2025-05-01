@@ -2,13 +2,6 @@
   "version": "1.0",
   "defaultProvider": "cdnjs",
   "libraries": [
-    //{
-    //  "library": "jqueryui@1.14.1",
-    //  "destination": "wwwroot/lib/jqueryui/",
-    //  "files": [
-    //    "jquery-ui.min.js"
-    //  ]
-    //},
     {
       "library": "jquery-ajax-unobtrusive@3.2.6",
       "destination": "wwwroot/lib/jquery-ajax-unobtrusive/",
@@ -17,9 +10,19 @@
       ]
     },
     {
-      "provider": "jsdelivr",
-      "library": "jquery-ui-datepicker-with-i18n@1.10.4",
-      "destination": "wwwroot/lib/jquery-ui-datepicker-with-i18n/"
+      "provider": "cdnjs",
+      "library": "jqueryui@1.14.1",
+      "destination": "wwwroot/lib/jqueryui/",
+      "files": [
+        "jquery-ui.min.js",
+        "themes/base/jquery-ui.min.css",
+        "themes/base/theme.min.css"
+      ]
+    },
+    {
+      "provider": "cdnjs",
+      "library": "jqueryui@1.14.1",
+      "destination": "wwwroot/lib/jqueryui/"
     }
   ]
 }

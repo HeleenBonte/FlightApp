@@ -11,6 +11,6 @@ namespace FlightApp.ViewModels
         public IEnumerable<FlightVM>? Flights { get; set; }
 
         [DataType(DataType.Date)]
-        public DateOnly DepartureDate { get; set; } 
+        public DateOnly? DepartureDate { get; set; } 
     }
 }

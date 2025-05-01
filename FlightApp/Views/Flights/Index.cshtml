@@ -1,8 +1,14 @@
 ﻿@model FlightApp.ViewModels.FlightsCityVM
 
-@{
-    ViewData["Title"] = "Index";
-}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Find Flights</title>
+    <link href="~/lib/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet" />
+</head>
+<body>
 
 <h1>Index</h1>
 <div class="row">
@@ -32,7 +38,7 @@
 
             <div class="form-group">
                 <label for="DepartureDate" class="control-label">Departure Date</label>
-                <input type="date" asp-for="DepartureDate" id="DepartureDate" />
+                <input type="text" asp-for="DepartureDate" id="DepartureDate" />
                 <span asp-validation-for="DepartureDate " class="text-danger"></span>
             </div>
 
@@ -61,11 +67,13 @@
         $("#DepartureDate").datepicker({
             showOtherMonths: true,
             selectOtherMonths: true,
-            minDate: 0,
+            minDate: '+3D',
             maxDate: '+6M',
             dateFormat: 'yy-mm-dd',
         });
     });
 </script>
 }
+</body>
 
+</html>
