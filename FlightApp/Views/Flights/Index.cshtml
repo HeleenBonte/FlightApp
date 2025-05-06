@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<h1>Index</h1>
+<h1>FLights</h1>
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Index"
@@ -46,7 +46,7 @@
         </form>
     </div>
 </div>
-
+<hr />
 <div id="content">
     <p>No Cities have been selected yet</p>
 </div>
@@ -62,14 +62,13 @@
 
         $("form").trigger("submit");
     });
-
     $( function () {
         $("#DepartureDate").datepicker({
             showOtherMonths: true,
             selectOtherMonths: true,
             minDate: '+3D',
             maxDate: '+6M',
-            dateFormat: 'yy-mm-dd',
+            dateFormat: 'dd/mm/yy',
         });
     });
 </script>
