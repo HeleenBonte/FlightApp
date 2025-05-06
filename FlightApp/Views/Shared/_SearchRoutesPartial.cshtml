@@ -16,7 +16,12 @@
             <th>
                 @Html.DisplayNameFor(model => model.ArrivalCity)
             </th>
-           
+           <th>
+               @Html.DisplayNameFor(model => model.Layover1)
+           </th>
+           <th>
+                @Html.DisplayNameFor(model => model.Layover2)
+                </th>
         </tr>
     </thead>
     <tbody>
@@ -34,7 +39,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.ArrivalCity)
             </td>
-            
+            <td>
+                @Html.DisplayFor(modelItem => item.Layover1)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Layover2)
+            </td>
         </tr>
 }
     </tbody>

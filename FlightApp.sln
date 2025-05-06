@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightApp", "FlightApp\FlightApp.csproj", "{C6C39C9F-0FFB-476C-82B9-8B56248AAE68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightApp", "FlightApp\FlightApp.csproj", "{C6C39C9F-0FFB-476C-82B9-8B56248AAE68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightApp.Domains", "FlightApp.Domains\FlightApp.Domains.csproj", "{2D279414-2F9E-4B49-ADF1-677529C291A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightApp.Domains", "FlightApp.Domains\FlightApp.Domains.csproj", "{2D279414-2F9E-4B49-ADF1-677529C291A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightApp.Repositories", "FlightApp.Repositories\FlightApp.Repositories.csproj", "{A7538DF2-4471-4792-B2F5-A015274AA525}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightApp.Repositories", "FlightApp.Repositories\FlightApp.Repositories.csproj", "{A7538DF2-4471-4792-B2F5-A015274AA525}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightApp.Services", "FlightApp.Services\FlightApp.Services.csproj", "{2D6EA19F-0539-46E4-BCDA-43BFD9461CA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightApp.Services", "FlightApp.Services\FlightApp.Services.csproj", "{2D6EA19F-0539-46E4-BCDA-43BFD9461CA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightApp.Util", "FlightApp.Util\FlightApp.Util.csproj", "{F51D4375-CA84-4EFC-A180-6AD3D01A9D51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{2D6EA19F-0539-46E4-BCDA-43BFD9461CA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D6EA19F-0539-46E4-BCDA-43BFD9461CA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D6EA19F-0539-46E4-BCDA-43BFD9461CA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F51D4375-CA84-4EFC-A180-6AD3D01A9D51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F51D4375-CA84-4EFC-A180-6AD3D01A9D51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F51D4375-CA84-4EFC-A180-6AD3D01A9D51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F51D4375-CA84-4EFC-A180-6AD3D01A9D51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

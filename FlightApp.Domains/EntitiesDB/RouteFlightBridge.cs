@@ -5,7 +5,9 @@ namespace FlightApp.Domains.EntitiesDB;
 
 public partial class RouteFlightBridge
 {
-    public string RouteId { get; set; } = null!;
+    public int RouteId { get; set; }
 
-    public string FlightId { get; set; } = null!;
+    public int FlightId { get; set; }
+    public virtual Route RouteNav { get; set; } = null!;
+    public virtual Flight FlightNav { get; set; } = null!;
 }

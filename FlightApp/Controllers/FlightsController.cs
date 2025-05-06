@@ -47,7 +47,7 @@ namespace FlightApp.Controllers
             }
             try
             {
-                var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID));
+                var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
                 return PartialView("_SearchFlightsPartial", listVM);
             }
@@ -84,6 +84,19 @@ namespace FlightApp.Controllers
             {
                 var routeList = await routeService.GetRoutesByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID));
                 List<RouteVM> listVM = _mapper.Map<List<RouteVM>>(routeList);
+                foreach (var route in listVM)
+                {
+                    var flights = _mapper.Map<List<FlightVM>>(route.Flights);
+                    if (flights.Count() == 2)
+                    {
+                        route.Layover1 = flights[1].ArrivalCity;
+                    }
+                    else if (flights.Count() == 3)
+                    {
+                        route.Layover1 = flights[1].ArrivalCity;
+                        route.Layover2 = flights[2].ArrivalCity;
+                    }
+                }
                 return PartialView("_SearchRoutesPartial", listVM);
             }
             catch (Exception ex)

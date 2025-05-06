@@ -74,14 +74,14 @@ namespace FlightApp.Repositories
         {
             throw new NotImplementedException();
         }
-        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId)
+        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate)
         {
             try
             {
                 return await dbContext.Flights
                     .Include(f => f.ArrivalCityNavigation)
                     .Include(f => f.DepartureCityNavigation)
-                    .Where(f => f.ArrivalCity == arrivalCityId && f.DepartureCity == departureCityId)
+                    .Where(f => f.ArrivalCity == arrivalCityId && f.DepartureCity == departureCityId && f.DepartureTime >= departureDate.ToDateTime(TimeOnly.MinValue))
                     .ToListAsync();
             }
             catch (Exception ex)

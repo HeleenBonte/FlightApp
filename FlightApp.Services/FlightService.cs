@@ -19,9 +19,9 @@ namespace FlightApp.Services
         {
             return await _flightDAO.GetAllAsync();
         }
-        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId)
+        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate)
         {
-            return await _flightDAO.GetFlightsByCitiesID(arrivalCityId, departureCityId);
+            return await _flightDAO.GetFlightsByCitiesID(arrivalCityId, departureCityId, departureDate);
         }
 
 

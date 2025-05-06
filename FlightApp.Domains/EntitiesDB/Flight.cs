@@ -11,9 +11,9 @@ public partial class Flight
 
     public int DepartureCity { get; set; }
 
-    public DateTime DepartureTime { get; set; }
+    public DateTime? DepartureTime { get; set; }
 
-    public DateTime ArrivalTime { get; set; }
+    public DateTime? ArrivalTime { get; set; }
 
     public int Seating { get; set; }
 

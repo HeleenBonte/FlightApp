@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using FlightApp.Domains.EntitiesDB;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace FlightApp.Domains.DataDB;
 
@@ -49,20 +48,10 @@ public partial class FlightsDbContext : DbContext
 
     public virtual DbSet<Ticket> Tickets { get; set; }
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            // install this packages: - Microsoft.Extensions.Configuration.Json
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("appsettings.json")
-            .Build();
-            // add connectionstring to appsettings.json file (see appsettings.json)
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=flightfullstack.database.windows.net; Database=Flights; User Id=Beheerder; password=FullstackServer4Me; TrustServerCertificate=True; MultipleActiveResultSets=true;");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
@@ -225,7 +214,9 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Flight");
 
-            entity.Property(e => e.FlightId).HasColumnName("FlightID");
+            entity.Property(e => e.FlightId)
+                .ValueGeneratedNever()
+                .HasColumnName("FlightID");
             entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
             entity.Property(e => e.DepartureTime).HasColumnType("datetime");
 
@@ -288,7 +279,9 @@ public partial class FlightsDbContext : DbContext
         {
             entity.ToTable("Route");
 
-            entity.Property(e => e.RouteId).HasColumnName("RouteID");
+            entity.Property(e => e.RouteId)
+                .ValueGeneratedNever()
+                .HasColumnName("RouteID");
             entity.Property(e => e.ArrivalCityId).HasColumnName("ArrivalCityID");
             entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
             entity.Property(e => e.DepartureCityId).HasColumnName("DepartureCityID");

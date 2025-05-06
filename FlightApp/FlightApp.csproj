@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FlightApp.Domains\FlightApp.Domains.csproj" />
     <ProjectReference Include="..\FlightApp.Services\FlightApp.Services.csproj" />
+    <ProjectReference Include="..\FlightApp.Util\FlightApp.Util.csproj" />
   </ItemGroup>
 
 </Project>

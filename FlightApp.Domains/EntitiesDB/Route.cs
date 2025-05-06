@@ -7,11 +7,11 @@ public partial class Route
 {
     public int RouteId { get; set; }
 
-    public DateTime DepartureTime { get; set; }
+    public DateTime? DepartureTime { get; set; }
 
     public int DepartureCityId { get; set; }
 
-    public DateTime ArrivalTime { get; set; }
+    public DateTime? ArrivalTime { get; set; }
 
     public int ArrivalCityId { get; set; }
 

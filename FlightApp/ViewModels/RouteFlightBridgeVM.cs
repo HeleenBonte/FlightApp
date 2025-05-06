@@ -1,8 +1,6 @@
-﻿using FlightApp.Domains.EntitiesDB;
-
-namespace FlightApp.ViewModels
+﻿namespace FlightApp.ViewModels
 {
-    public class RouteVM
+    public class RouteFlightBridgeVM
     {
         public int RouteId { get; set; }
         public DateTime DepartureTime { get; set; }

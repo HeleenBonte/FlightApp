@@ -37,7 +37,25 @@ namespace FlightApp.AutoMapper
                     src => src.DepartureCity.CityName))
                 .ForMember(dest => dest.ArrivalCity,
                 opts => opts.MapFrom(
-                    src => src.ArrivalCity.CityName));
+                    src => src.ArrivalCity.CityName))
+                .ForMember(dest => dest.Flights,
+                opts => opts.MapFrom(
+                    src => src.Flights));
+
+
+            //RouteFlightBridge
+            CreateMap<RouteFlightBridge, RouteFlightBridgeVM>()
+                .ForMember(dest => dest.DepartureCity,
+                    opts => opts.MapFrom(
+                        src => src.RouteNav.DepartureCity.CityName))
+                .ForMember(dest => dest.ArrivalCity,
+                opts => opts.MapFrom(
+                    src => src.RouteNav.ArrivalCity.CityName))
+                .ForMember(dest => dest.DepartureTime,
+                opts => opts.MapFrom(
+                    src =>src.RouteNav.DepartureTime))
+                ;
+
 
 
             // CreateMap<Source, Destination>();

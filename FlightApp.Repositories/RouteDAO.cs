@@ -55,7 +55,7 @@ namespace FlightApp.Repositories
         {
             try
             {
-                return await dbContext.Routes.ToListAsync();
+                return await dbContext.Routes.Include(x => x.Flights).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -72,6 +72,7 @@ namespace FlightApp.Repositories
                     .Include(f => f.ArrivalCity)
                     .Include(f => f.DepartureCity)
                     .Where(f => f.ArrivalCityId == arrivalCityId && f.DepartureCityId == departureCityId)
+                    .Include(f => f.Flights)
                     .ToListAsync();
             }
             catch (Exception ex)

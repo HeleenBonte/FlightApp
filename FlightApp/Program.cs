@@ -8,8 +8,11 @@ using FlightApp.Repositories.Interface;
 using FlightApp.Repositories.Interfaces;
 using FlightApp.Services;
 using FlightApp.Services.Interfaces;
+using FlightApp.Util.Mail;
+using FlightApp.Util.Mail.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Configuration;
 using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +32,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<FlightsDbContext>(options =>
        options.UseSqlServer(connectionString));
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Configuration["Emailsettings:Password"] = "jqql zhte fczz byrq";
+builder.Services.AddSingleton<IEmailSend, EmailSend>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
