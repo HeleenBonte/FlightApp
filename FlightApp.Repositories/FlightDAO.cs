@@ -81,7 +81,7 @@ namespace FlightApp.Repositories
                 return await dbContext.Flights
                     .Include(f => f.ArrivalCityNavigation)
                     .Include(f => f.DepartureCityNavigation)
-                    .Where(f => f.ArrivalCity == arrivalCityId && f.DepartureCity == departureCityId && f.DepartureTime >= departureDate.ToDateTime(TimeOnly.MinValue))
+                    .Where(f => f.ArrivalCity == arrivalCityId && f.DepartureCity == departureCityId &&  f.DepartureTime >= departureDate.ToDateTime(TimeOnly.MinValue) && f.DepartureTime <= departureDate.ToDateTime(TimeOnly.MaxValue))
                     .ToListAsync();
             }
             catch (Exception ex)

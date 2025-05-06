@@ -10,7 +10,7 @@ namespace FlightApp.Repositories.Interfaces
 {
     public interface IRouteDAO : IDAO<Route>
     {
-        Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId);
+        Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate);
 
     }
 }

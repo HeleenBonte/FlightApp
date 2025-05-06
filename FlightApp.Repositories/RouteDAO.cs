@@ -64,14 +64,14 @@ namespace FlightApp.Repositories
             }
         }
 
-        public async Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId)
+        public async Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate)
         {
             try
             {
                 return await dbContext.Routes
                     .Include(f => f.ArrivalCity)
                     .Include(f => f.DepartureCity)
-                    .Where(f => f.ArrivalCityId == arrivalCityId && f.DepartureCityId == departureCityId)
+                    .Where(f => f.ArrivalCityId == arrivalCityId && f.DepartureCityId == departureCityId && f.DepartureTime >= departureDate.ToDateTime(TimeOnly.MinValue) && f.DepartureTime <= departureDate.ToDateTime(TimeOnly.MaxValue))
                     .Include(f => f.Flights)
                     .ToListAsync();
             }

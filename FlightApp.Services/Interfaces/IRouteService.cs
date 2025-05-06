@@ -9,7 +9,7 @@ namespace FlightApp.Services.Interfaces
 {
     public interface IRouteService : IService<Route>
     {
-        Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId);
+        Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate);
 
     }
 }

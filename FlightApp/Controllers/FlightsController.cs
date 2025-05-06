@@ -4,6 +4,7 @@ using FlightApp.Services.Interfaces;
 using FlightApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FlightApp.Controllers
 {
@@ -41,7 +42,7 @@ namespace FlightApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(FlightsCityVM entity)
         {
-            if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0)
+            if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0 || entity.DepartureDate < DateOnly.FromDateTime(DateTime.Now))
             {
                 ModelState.AddModelError("", "Vul alstublieft alle velden in.");
             }
@@ -76,25 +77,39 @@ namespace FlightApp.Controllers
         [HttpPost]
         public async Task<IActionResult> GetRoutes(RouteCityVM entity)
         {
-            if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0)
+            if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0 || entity.DepartureDate < DateOnly.FromDateTime(DateTime.Now))
             {
                 ModelState.AddModelError("", "Vul alstublieft alle velden in.");
             }
             try
             {
-                var routeList = await routeService.GetRoutesByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID));
+                var routeList = await routeService.GetRoutesByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<RouteVM> listVM = _mapper.Map<List<RouteVM>>(routeList);
                 foreach (var route in listVM)
                 {
-                    var flights = _mapper.Map<List<FlightVM>>(route.Flights);
-                    if (flights.Count() == 2)
+                    List<FlightVM> flightVMs = new List<FlightVM>();
+                    foreach (var v in route.Flights)
                     {
-                        route.Layover1 = flights[1].ArrivalCity;
+                        try
+                        {
+                            Flight flight = await flightService.FindByIdAsync(Convert.ToInt16(v.FlightId));
+                            flightVMs.Add(_mapper.Map<FlightVM>(flight));
+                        }
+                        catch(Exception ex)
+                        {
+                            ViewBag.ErrorMessage = "Er is een probleem opgetreden bij het ophalen van de flightVMs";
+                            return View("Error");
+                        }
                     }
-                    else if (flights.Count() == 3)
+                    route.Flights = flightVMs;
+                    if (flightVMs.Count() == 2)
                     {
-                        route.Layover1 = flights[1].ArrivalCity;
-                        route.Layover2 = flights[2].ArrivalCity;
+                        route.Layover1 = flightVMs[1].ArrivalCity;
+                    }
+                    else if (flightVMs.Count() == 3)
+                    {
+                        route.Layover1 = flightVMs[2].ArrivalCity;
+                        route.Layover2 = flightVMs[1].ArrivalCity;
                     }
                 }
                 return PartialView("_SearchRoutesPartial", listVM);

@@ -3,6 +3,7 @@ using FlightApp.Services.Interfaces;
 using FlightApp.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Reflection.Metadata.Ecma335;
 
 namespace FlightApp.Services
 {
@@ -27,7 +28,10 @@ namespace FlightApp.Services
 
         public Task AddAsync(Flight entity) => throw new NotImplementedException();
         public Task DeleteAsync(Flight entity) => throw new NotImplementedException();
-        public Task<Flight?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public async Task<Flight?> FindByIdAsync(int id)
+        {
+            return await _flightDAO.FindByIdAsync(id);
+        }
         public Task UpdateAsync(Flight entity) => throw new NotImplementedException();
     }
 }

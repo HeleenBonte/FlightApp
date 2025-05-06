@@ -40,7 +40,8 @@ namespace FlightApp.AutoMapper
                     src => src.ArrivalCity.CityName))
                 .ForMember(dest => dest.Flights,
                 opts => opts.MapFrom(
-                    src => src.Flights));
+                    src => src.Flights))
+                ;
 
 
             //RouteFlightBridge
