@@ -1,5 +1,6 @@
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using FlightApp.Areas.Identity.Data;
 using FlightApp.Data;
 using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
@@ -10,12 +11,15 @@ using FlightApp.Services;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Mail;
 using FlightApp.Util.Mail.Interfaces;
+using FlightApp.Util.PDF;
+using FlightApp.Util.PDF.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Configuration;
 using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
+//var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 
 // Key Vault settings
 string? vaultUrl = builder.Configuration["KeyVault:VaultUrl"];
@@ -39,7 +43,7 @@ builder.Services.AddSingleton<IEmailSend, EmailSend>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
@@ -69,6 +73,11 @@ builder.Services.AddTransient<IRouteService, RouteService>();
 
 builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
 builder.Services.AddTransient<IService<Ticket>, TicketService>();
+
+builder.Services.AddTransient<ICreatePDF, CreatePDF>();
+builder.Services.AddTransient<IEmailSend, EmailSend>();
+
+
 
 builder.Services.AddAutoMapper(typeof(Program));
 

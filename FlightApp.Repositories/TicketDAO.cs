@@ -41,7 +41,15 @@ namespace FlightApp.Repositories
         {
             try
             {
-                return await dbContext.Tickets.Where(e => e.TicketId == Id).FirstOrDefaultAsync();
+                return await dbContext.Tickets
+                    .Where(e => e.TicketId == Id)
+                    .Include(f => f.Passenger)
+                    .Include(f => f.BookingClass)
+                    .Include(f => f.Flight)
+                    .Include(f => f.MealChoice)
+                    .Include(f => f.Flight.DepartureCityNavigation)
+                    .Include(f => f.Flight.ArrivalCityNavigation)
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -54,7 +62,14 @@ namespace FlightApp.Repositories
         {
             try
             {
-                return await dbContext.Tickets.ToListAsync();
+                return await dbContext.Tickets
+                    .Include(e => e.Passenger)
+                    .Include(f => f.BookingClass)
+                    .Include(f => f.Flight)
+                    .Include(f => f.MealChoice)
+                    .Include(f => f.Flight.DepartureCityNavigation)
+                    .Include(f => f.Flight.ArrivalCityNavigation)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
