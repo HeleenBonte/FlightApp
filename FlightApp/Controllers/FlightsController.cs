@@ -121,10 +121,11 @@ namespace FlightApp.Controllers
             }
         }
 
-
-
-
-
+        [HttpGet]
+        public IActionResult ViewCart()
+        {
+            return RedirectToAction("Index", "ShoppingCart");
+        }
     }
 }
 

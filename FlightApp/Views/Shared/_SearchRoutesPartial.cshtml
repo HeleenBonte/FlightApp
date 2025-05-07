@@ -1,6 +1,5 @@
 ﻿@model IEnumerable<FlightApp.ViewModels.RouteVM>
 
-
 <table class="table">
     <thead>
         <tr>
@@ -21,7 +20,8 @@
            </th>
            <th>
                 @Html.DisplayNameFor(model => model.Layover2)
-                </th>
+           </th>
+           <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -44,6 +44,10 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Layover2)
+            </td>
+            <td>
+                <a asp-controller="ShoppingCart" asp-action="AddRouteToCart" asp-route-id="@item.RouteId" 
+                   class="btn btn-primary">Add to Basket</a>
             </td>
         </tr>
 }
