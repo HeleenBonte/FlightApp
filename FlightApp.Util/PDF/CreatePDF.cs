@@ -8,6 +8,7 @@ using iText.Kernel.Font;
 using iText.Kernel.Pdf;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using QRCoder;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -33,6 +34,7 @@ namespace FlightApp.Util.PDF
                 document.Add(logo);
                 string companyName = "Zephyrus Airlines";
 
+
                 document.Add(new Paragraph(companyName)
                     .SetFontSize(20)
                     .SetBold()
@@ -50,6 +52,19 @@ namespace FlightApp.Util.PDF
                 var seatNumber = ticket.SeatNumber;
                 var bookingClass = ticket.BookingClass.Description;
                 var mealChoice = ticket.MealChoice.Type;
+
+                var qrDescription = $"Passenger: {namePassenger}\nFlight: {nameFlight}\nDate: {dateFlight}\nSeat Number: {seatNumber}\nBooking Class: {bookingClass}\nMeal Choice: {mealChoice}";
+
+                var qrGenerator = new QRCodeGenerator();
+                var qrCodeData = qrGenerator.CreateQrCode(qrDescription, QRCodeGenerator.ECCLevel.Q);
+                var qrCode = new QRCode(qrCodeData);
+                var qrCodeImage = qrCode.GetGraphic(20);
+
+                iText.Layout.Element.Image qrCodeImageElement = new iText.Layout.Element.Image(ImageDataFactory.Create(BitmapToBytes(qrCodeImage)))
+                    .SetWidth(100)
+                    .SetHeight(100)
+                    .SetHorizontalAlignment(HorizontalAlignment.RIGHT);
+                document.Add(qrCodeImageElement);
 
                 iText.Layout.Element.Paragraph paragraph = new iText.Layout.Element.Paragraph("Ticket Confirmation")
                     .SetFontSize(20)
