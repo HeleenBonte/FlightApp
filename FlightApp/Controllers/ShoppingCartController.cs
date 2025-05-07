@@ -32,7 +32,6 @@ namespace FlightApp.Controllers
         {
             try
             {
-                // Fetch the route and its related data from the database
                 var route = await _dbContext.Routes
                     .Include(r => r.DepartureCity)
                     .Include(r => r.ArrivalCity)
@@ -61,7 +60,7 @@ namespace FlightApp.Controllers
                     DepartureTime = route.DepartureTime ?? DateTime.Now,
                     DepartureCity = route.DepartureCity?.CityName,
                     ArrivalCity = route.ArrivalCity?.CityName,
-                    ArrivalTime = route.Flights.LastOrDefault()?.ArrivalTime, // Set ArrivalTime
+                    ArrivalTime = route.Flights.LastOrDefault()?.ArrivalTime,
                     Flights = new List<FlightVM>(),
                     TotalPrice = 0,
                     Passengers = new List<PassengerVM>()
@@ -82,8 +81,6 @@ namespace FlightApp.Controllers
                         routeCartItem.TotalPrice += flightDetail.Price;
 
 
-
-                        // Fetch passengers for the flight and add them to the Passengers list
                         var passengers = await _dbContext.Passengers
                             .Where(p => p.Tickets.Any(t => t.FlightId == flight.FlightId))
                             .ToListAsync();
@@ -102,7 +99,6 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                // Set layovers if any
                 if (routeCartItem.Flights.Count == 2)
                 {
                     var flights = routeCartItem.Flights.ToList();
