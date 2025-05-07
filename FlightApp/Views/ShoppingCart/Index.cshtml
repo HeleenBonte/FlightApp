@@ -31,6 +31,7 @@ else
                 <th>Route</th>
                 <th>Departure</th>
                 <th>Arrival</th>
+                <th>Arrival Time</th> <!-- Added ArrivalTime column -->
                 <th>Passengers</th>
                 <th>Price</th>
                 <th>Actions</th>
@@ -43,6 +44,7 @@ else
                     <td>@item.RouteId</td>
                     <td>@item.DepartureCity<br />@item.DepartureTime.ToString("g")</td>
                     <td>@item.ArrivalCity</td>
+                    <td>@item.ArrivalTime?.ToString("g")</td> <!-- Display ArrivalTime -->
                     <td>
                         <form asp-action="DecreasePassengerCount" method="post" style="display:inline;">
                             <input type="hidden" name="routeId" value="@item.RouteId" />

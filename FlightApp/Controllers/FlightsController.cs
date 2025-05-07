@@ -102,6 +102,10 @@ namespace FlightApp.Controllers
                         }
                     }
                     route.Flights = flightVMs;
+                    if (flightVMs.Any())
+                    {
+                        route.ArrivalTime = flightVMs.Last().ArrivalTime; // Set ArrivalTime
+                    }
                     if (flightVMs.Count() == 2)
                     {
                         route.Layover1 = flightVMs[1].ArrivalCity;

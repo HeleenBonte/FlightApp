@@ -12,5 +12,6 @@ namespace FlightApp.ViewModels
 
         public String? Layover1 { get; set; }
         public String? Layover2 { get; set; }
+        public DateTime? ArrivalTime { get; set; } // Added property for ArrivalTime
     }
 }
