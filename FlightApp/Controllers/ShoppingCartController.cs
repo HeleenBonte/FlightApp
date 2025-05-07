@@ -60,7 +60,7 @@ namespace FlightApp.Controllers
                     DepartureTime = route.DepartureTime ?? DateTime.Now,
                     DepartureCity = route.DepartureCity?.CityName,
                     ArrivalCity = route.ArrivalCity?.CityName,
-                    ArrivalTime = route.Flights.LastOrDefault()?.ArrivalTime,
+                    ArrivalTime = route.ArrivalTime,
                     Flights = new List<FlightVM>(),
                     TotalPrice = 0,
                     Passengers = new List<PassengerVM>()
