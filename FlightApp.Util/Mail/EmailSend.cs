@@ -18,15 +18,16 @@ namespace FlightApp.Util.Mail
             _emailSettings = emailSettings.Value;
         }
         public async Task SendEmailAsync(
-        string email, string subject, string message)
+        string email, string subject, string message, Stream stream)
         {
             var mail = new MailMessage(); // aanmaken van een mail-object
             mail.To.Add(new MailAddress(email));
-            mail.From = new
-            MailAddress("bonteheleen@gmail.com"); // hier komt jullie Gmail-adres
+            mail.From = new MailAddress("bonteheleen@gmail.com"); // hier komt jullie Gmail-adres
             mail.Subject = subject;
             mail.Body = message;
             mail.IsBodyHtml = true;
+            var attachment = new Attachment(stream, "Ticket.pdf");
+            mail.Attachments.Add(attachment);
             try
             {
                 using (var smtp = new SmtpClient(_emailSettings.MailServer))

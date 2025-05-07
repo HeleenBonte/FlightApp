@@ -10,6 +10,8 @@ using FlightApp.Services;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Mail;
 using FlightApp.Util.Mail.Interfaces;
+using FlightApp.Util.PDF;
+using FlightApp.Util.PDF.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Configuration;
@@ -69,6 +71,11 @@ builder.Services.AddTransient<IRouteService, RouteService>();
 
 builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
 builder.Services.AddTransient<IService<Ticket>, TicketService>();
+
+builder.Services.AddTransient<ICreatePDF, CreatePDF>();
+builder.Services.AddTransient<IEmailSend, EmailSend>();
+
+
 
 builder.Services.AddAutoMapper(typeof(Program));
 

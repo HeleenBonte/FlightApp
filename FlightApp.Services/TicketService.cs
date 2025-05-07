@@ -22,7 +22,10 @@ namespace FlightApp.Services
 
         public Task AddAsync(Ticket entity) => throw new NotImplementedException();
         public Task DeleteAsync(Ticket entity) => throw new NotImplementedException();
-        public Task<Ticket?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public async Task<Ticket?> FindByIdAsync(int id)
+        {
+           return await _ticketDAO.FindByIdAsync(id);
+        }
         public Task UpdateAsync(Ticket entity) => throw new NotImplementedException();
     }
 }
