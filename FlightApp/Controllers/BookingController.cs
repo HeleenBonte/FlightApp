@@ -31,7 +31,7 @@ namespace FlightApp.Controllers
             
             var ticket = await _ticketService.FindByIdAsync(1);
             var pdfDoc = _createPDF.CreatePDFDocumentAsync(ticket);
-            await _emailSender.SendEmailAsync("bonteheleen@hotmail.com", "Tickets", "Here are your tickets", pdfDoc);
+            await _emailSender.SendEmailAsync(ticket.Passenger.Email, "Tickets", "Here are your tickets", pdfDoc);
             //return File(pdfDoc.ToArray(), "application/pdf", "ticket.pdf");
             return View("Index");
         }
