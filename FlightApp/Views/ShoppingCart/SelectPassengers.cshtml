@@ -1,0 +1,89 @@
+@model FlightApp.ViewModels.RouteCartItemVM
+@{
+    ViewData["Title"] = "Select Passengers";
+}
+
+<div class="container mt-4">
+    <h2>Passenger Selection</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Flight Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>From:</strong> @Model.DepartureCity</p>
+                    <p><strong>To:</strong> @Model.ArrivalCity</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Departure:</strong> @Model.DepartureTime.ToString("dd MMM yyyy HH:mm")</p>
+                    @if (Model.ArrivalTime.HasValue)
+                    {
+                        <p><strong>Arrival:</strong> @Model.ArrivalTime.Value.ToString("dd MMM yyyy HH:mm")</p>
+                    }
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.Layover1))
+            {
+                <div class="alert alert-info">
+                    <p><strong>Connection via:</strong> @Model.Layover1</p>
+                </div>
+            }
+            
+            @if (!string.IsNullOrEmpty(Model.Layover2))
+            {
+                <div class="alert alert-info">
+                    <p><strong>Connection via:</strong> @Model.Layover2</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <form asp-action="SavePassengers" method="post">
+        <input type="hidden" name="routeId" value="@Model.RouteId" />
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Enter Passenger Details</h4>
+                <span class="text-muted">Total passengers: @Model.PassengerCount</span>
+            </div>
+            <div class="card-body">
+                @for (int i = 0; i < Model.PassengerCount; i++)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Passenger @(i + 1)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" name="passengers[@i].FirstName" class="form-control" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" name="passengers[@i].LastName" class="form-control" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="passengers[@i].Email" class="form-control" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" name="passengers[@i].DateOfBirth" class="form-control" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Index" class="btn btn-secondary">Back to Basket</a>
+            <button type="submit" class="btn btn-primary">Save and Continue</button>
+        </div>
+    </form>
+</div>

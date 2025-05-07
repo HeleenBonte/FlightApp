@@ -80,7 +80,6 @@ namespace FlightApp.Controllers
                         routeCartItem.Flights.Add(flightVM);
                         routeCartItem.TotalPrice += flightDetail.Price;
 
-
                         var passengers = await _dbContext.Passengers
                             .Where(p => p.Tickets.Any(t => t.FlightId == flight.FlightId))
                             .ToListAsync();
@@ -115,11 +114,64 @@ namespace FlightApp.Controllers
                 SaveCartToSession(cart);
 
                 TempData["Message"] = "Route added to your basket successfully.";
-                return RedirectToAction("Index");
+                // Instead of redirecting to Index, redirect to SelectPassengers with the route ID
+                return RedirectToAction("SelectPassengers", new { routeId = id });
             }
             catch (Exception ex)
             {
                 return View("Error", new ErrorViewModel { RequestId = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SelectPassengers(int routeId)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+                
+                if (routeItem == null)
+                {
+                    TempData["Error"] = "Route not found in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Return the view with the route item to allow passenger selection
+                return View(routeItem);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+                
+                if (routeItem != null)
+                {
+                    routeItem.Passengers = passengers;
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Passenger information saved successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Route not found in your basket.";
+                }
+                
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
             }
         }
 
