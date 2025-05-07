@@ -80,6 +80,8 @@ namespace FlightApp.Controllers
                         routeCartItem.Flights.Add(flightVM);
                         routeCartItem.TotalPrice += flightDetail.Price;
 
+
+
                         // Fetch passengers for the flight and add them to the Passengers list
                         var passengers = await _dbContext.Passengers
                             .Where(p => p.Tickets.Any(t => t.FlightId == flight.FlightId))
@@ -124,39 +126,99 @@ namespace FlightApp.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult RemoveRouteFromCart(int id)
+        [HttpPost]
+        public IActionResult IncreasePassengerCount(int routeId)
         {
             var cart = GetCartFromSession();
-            var routeToRemove = cart.RouteItems.FirstOrDefault(r => r.RouteId == id);
-            if (routeToRemove != null)
+            var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+
+            if (routeItem != null)
             {
-                cart.RouteItems.Remove(routeToRemove);
+                routeItem.PassengerCount++;
+                routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * routeItem.PassengerCount;
                 SaveCartToSession(cart);
-                TempData["Message"] = "Route removed from your basket.";
             }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult DecreasePassengerCount(int routeId)
+        {
+            var cart = GetCartFromSession();
+            var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+
+            if (routeItem != null && routeItem.PassengerCount > 1)
+            {
+                routeItem.PassengerCount--;
+                routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * routeItem.PassengerCount;
+                SaveCartToSession(cart);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult RemoveRouteFromCart(int id)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var routeToRemove = cart.RouteItems.FirstOrDefault(r => r.RouteId == id);
+
+                if (routeToRemove != null)
+                {
+                    cart.RouteItems.Remove(routeToRemove);
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Route removed from your basket.";
+                }
+                else
+                {
+                    TempData["Error"] = "Route not found in your basket.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred while removing the route: {ex.Message}";
+            }
+
             return RedirectToAction("Index");
         }
 
         private ShoppingCartVM GetCartFromSession()
         {
-            var cartJson = HttpContext.Session.GetString("Cart");
-            if (string.IsNullOrEmpty(cartJson))
+            try
             {
+                var cartJson = HttpContext.Session.GetString("Cart");
+                if (string.IsNullOrEmpty(cartJson))
+                {
+                    return new ShoppingCartVM();
+                }
+                return JsonSerializer.Deserialize<ShoppingCartVM>(cartJson) ?? new ShoppingCartVM();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to retrieve cart from session: {ex.Message}";
                 return new ShoppingCartVM();
             }
-            return JsonSerializer.Deserialize<ShoppingCartVM>(cartJson) ?? new ShoppingCartVM();
         }
 
         private void SaveCartToSession(ShoppingCartVM cart)
         {
-            var options = new JsonSerializerOptions
+            try
             {
-                WriteIndented = true,
-                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
-            };
-            var cartJson = JsonSerializer.Serialize(cart, options);
-            HttpContext.Session.SetString("Cart", cartJson);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+                };
+                var cartJson = JsonSerializer.Serialize(cart, options);
+                HttpContext.Session.SetString("Cart", cartJson);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to save cart to session: {ex.Message}";
+            }
         }
     }
 }

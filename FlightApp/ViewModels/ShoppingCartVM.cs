@@ -12,7 +12,7 @@ namespace FlightApp.ViewModels
         public double ComputeTotalValue()
         {
             double flightTotal = CartItems.Sum(x => x.Passengers.Count * x.Price);
-            double routeTotal = RouteItems.Sum(r => r.TotalPrice);
+            double routeTotal = RouteItems.Sum(item => item.TotalPrice);
             return flightTotal + routeTotal;
         }
     }

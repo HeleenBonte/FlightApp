@@ -11,6 +11,11 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 @if (Model.RouteItems.Count == 0)
 {
     <div class="alert alert-warning">Your basket is empty.</div>
@@ -26,7 +31,6 @@ else
                 <th>Route</th>
                 <th>Departure</th>
                 <th>Arrival</th>
-                <th>Layovers</th>
                 <th>Passengers</th>
                 <th>Price</th>
                 <th>Actions</th>
@@ -40,31 +44,22 @@ else
                     <td>@item.DepartureCity<br />@item.DepartureTime.ToString("g")</td>
                     <td>@item.ArrivalCity</td>
                     <td>
-                        @if (!string.IsNullOrEmpty(item.Layover1))
-                        {
-                            @item.Layover1
-                            @if (!string.IsNullOrEmpty(item.Layover2))
-                            {
-                                <span>, @item.Layover2</span>
-                            }
-                        }
-                        else
-                        {
-                            <span>Direct</span>
-                        }
+                        <form asp-action="DecreasePassengerCount" method="post" style="display:inline;">
+                            <input type="hidden" name="routeId" value="@item.RouteId" />
+                            <button class="btn btn-sm btn-secondary" @(item.PassengerCount <= 1 ? "disabled" : "")> - </button>
+                        </form>
+                        @item.PassengerCount
+                        <form asp-action="IncreasePassengerCount" method="post" style="display:inline;">
+                            <input type="hidden" name="routeId" value="@item.RouteId" />
+                            <button class="btn btn-sm btn-secondary"> + </button>
+                        </form>
                     </td>
+                    <td>€@item.TotalPrice</td>
                     <td>
-                        @foreach (var passenger in item.Passengers)
-                        {
-                            <div>@passenger.FirstName @passenger.LastName</div>
-                        }
-                        <a asp-controller="ShoppingCart" asp-action="AddPassengerToRoute" asp-route-routeId="@item.RouteId" 
-                           class="btn btn-sm btn-secondary">+</a>
-                    </td>
-                    <td>€@(item.Passengers.Count * item.TotalPrice)</td>
-                    <td>
-                        <a asp-controller="ShoppingCart" asp-action="RemoveRouteFromCart" asp-route-id="@item.RouteId" 
-                           class="btn btn-danger">Remove</a>
+                        <form asp-action="RemoveRouteFromCart" method="post">
+                            <input type="hidden" name="id" value="@item.RouteId" />
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
                     </td>
                 </tr>
             }
