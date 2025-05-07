@@ -7,6 +7,7 @@
         public DateOnly BookingTime { get; set; }
         public bool PaymentStatus { get; set; }
         public int RouteId { get; set; }
+        public IEnumerable<PassengerVM>? Passengers { get; set; }
 
     }
 }
