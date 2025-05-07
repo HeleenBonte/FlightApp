@@ -29,9 +29,10 @@ else
         <thead>
             <tr>
                 <th>Route</th>
-                <th>Departure</th>
-                <th>Arrival</th>
-                <th>Arrival Time</th> <!-- Added ArrivalTime column -->
+                <th>Departure Time</th>
+                <th>Departure City</th>
+                <th>Arrival City</th>
+                <th>Arrival Time</th>
                 <th>Passengers</th>
                 <th>Price</th>
                 <th>Actions</th>
@@ -42,9 +43,10 @@ else
             {
                 <tr>
                     <td>@item.RouteId</td>
-                    <td>@item.DepartureCity<br />@item.DepartureTime.ToString("g")</td>
+                    <td>@item.DepartureTime.ToString("g")</td>
+                    <td>@item.DepartureCity</td>
                     <td>@item.ArrivalCity</td>
-                    <td>@item.ArrivalTime?.ToString("g")</td> <!-- Display ArrivalTime -->
+                    <td>@item.ArrivalTime?.ToString("g")</td>
                     <td>
                         <form asp-action="DecreasePassengerCount" method="post" style="display:inline;">
                             <input type="hidden" name="routeId" value="@item.RouteId" />
