@@ -148,7 +148,7 @@ namespace FlightApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers)
+        public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
         {
             try
             {
@@ -157,7 +157,15 @@ namespace FlightApp.Controllers
                 
                 if (routeItem != null)
                 {
-                    routeItem.Passengers = passengers;
+                    // Update the passenger count
+                    routeItem.PassengerCount = passengerCount;
+                    
+                    // Update the passenger list - ensure we have the right number of passengers
+                    routeItem.Passengers = passengers.Take(passengerCount).ToList();
+                    
+                    // Recalculate the total price based on the number of passengers
+                    routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * passengerCount;
+                    
                     SaveCartToSession(cart);
                     TempData["Message"] = "Passenger information saved successfully.";
                 }
