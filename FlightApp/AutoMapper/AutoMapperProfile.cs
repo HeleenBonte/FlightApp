@@ -14,7 +14,10 @@ namespace FlightApp.AutoMapper
                     src => src.DepartureCityNavigation.CityName))
                 .ForMember(dest => dest.ArrivalCity,
                 opts => opts.MapFrom(
-                    src => src.ArrivalCityNavigation.CityName));
+                    src => src.ArrivalCityNavigation.CityName))
+                .ForMember(dest => dest.Tickets,
+                opts => opts.MapFrom(
+                    src => src.Tickets));
 
 
 
