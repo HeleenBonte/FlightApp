@@ -1,11 +1,18 @@
 @model FlightApp.ViewModels.RouteCartItemVM
 @{
     ViewData["Title"] = "Select Passengers";
+    var mealChoices = ViewBag.MealChoices as List<FlightApp.Domains.EntitiesDB.MealChoice> ?? new List<FlightApp.Domains.EntitiesDB.MealChoice>();
+    var jsonSettings = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null,
+                WriteIndented = true
+            };
+    var mealChoicesJson = System.Text.Json.JsonSerializer.Serialize(mealChoices, jsonSettings);
 }
 
 <div class="container mt-4">
     <h2>Passenger Selection</h2>
-    
+
     <div class="card mb-4">
         <div class="card-header">
             <h4>Flight Details</h4>
@@ -24,14 +31,14 @@
                     }
                 </div>
             </div>
-            
+
             @if (!string.IsNullOrEmpty(Model.Layover1))
             {
                 <div class="alert alert-info">
                     <p><strong>Connection via:</strong> @Model.Layover1</p>
                 </div>
             }
-            
+
             @if (!string.IsNullOrEmpty(Model.Layover2))
             {
                 <div class="alert alert-info">
@@ -40,10 +47,10 @@
             }
         </div>
     </div>
-    
+
     <form asp-action="SavePassengers" method="post">
         <input type="hidden" name="routeId" value="@Model.RouteId" />
-        
+
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4>Select Number of Passengers</h4>
@@ -62,7 +69,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4>Enter Passenger Details</h4>
@@ -74,7 +81,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
             <button type="submit" class="btn btn-primary">Continue to Payment</button>
         </div>
@@ -84,9 +91,19 @@
 @section Scripts {
     <script src="~/js/passengerForms.js"></script>
     <script>
+        // Create a global variable to store meal choices
+        var mealChoicesData = @Html.Raw(mealChoicesJson);
+
         document.addEventListener('DOMContentLoaded', function() {
             // Generate initial forms based on model
-            generatePassengerForms(@Model.PassengerCount);
+            generatePassengerForms(@Model.PassengerCount, mealChoicesData);
+
+            // Add listener for future changes
+            const passengerCountDropdown = document.getElementById('passengerCount');
+            passengerCountDropdown.addEventListener('change', function() {
+                const selectedCount = parseInt(this.value, 10);
+                generatePassengerForms(selectedCount, mealChoicesData);
+            });
         });
     </script>
 }

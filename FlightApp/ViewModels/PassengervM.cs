@@ -11,5 +11,6 @@
         public int FlightId { get; set; }
         public int SeatNumber { get; set; }
         public bool IsCheckedIn { get; set; } = false;
+        public int MealChoiceId { get; set; }
     }
 }

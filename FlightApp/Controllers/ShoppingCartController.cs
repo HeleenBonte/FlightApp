@@ -124,18 +124,32 @@ namespace FlightApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SelectPassengers(int routeId)
+        public async Task<IActionResult> SelectPassengers(int routeId, int? passengerCount = null)
         {
             try
             {
                 var cart = GetCartFromSession();
                 var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
-                
+
                 if (routeItem == null)
                 {
                     TempData["Error"] = "Route not found in your basket.";
                     return RedirectToAction("Index");
                 }
+
+                // Update passenger count if provided
+                if (passengerCount.HasValue)
+                {
+                    routeItem.PassengerCount = passengerCount.Value;
+                    SaveCartToSession(cart);
+                }
+
+                // Retrieve meal choices from the database directly
+                var mealChoices = await _dbContext.MealChoices.ToListAsync();
+                ViewBag.MealChoices = mealChoices;
+
+                // Log meal choices count for debugging
+                Console.WriteLine($"Found {mealChoices.Count} meal choices");
 
                 // Return the view with the route item to allow passenger selection
                 return View(routeItem);
@@ -147,6 +161,7 @@ namespace FlightApp.Controllers
             }
         }
 
+
         [HttpPost]
         public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
         {
@@ -154,18 +169,25 @@ namespace FlightApp.Controllers
             {
                 var cart = GetCartFromSession();
                 var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
-                
+
                 if (routeItem != null)
                 {
                     // Update the passenger count
                     routeItem.PassengerCount = passengerCount;
-                    
+
                     // Update the passenger list - ensure we have the right number of passengers
                     routeItem.Passengers = passengers.Take(passengerCount).ToList();
-                    
+
+                    // Validate that each passenger has selected a meal choice
+                    if (routeItem.Passengers.Any(p => p.MealChoiceId == 0))
+                    {
+                        TempData["Error"] = "Each passenger must select a meal preference.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
+
                     // Recalculate the total price based on the number of passengers
                     routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * passengerCount;
-                    
+
                     SaveCartToSession(cart);
                     TempData["Message"] = "Passenger information saved successfully.";
                 }
@@ -173,7 +195,7 @@ namespace FlightApp.Controllers
                 {
                     TempData["Error"] = "Route not found in your basket.";
                 }
-                
+
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
