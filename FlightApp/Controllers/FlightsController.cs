@@ -54,8 +54,7 @@ namespace FlightApp.Controllers
                 var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
 
-                // Ensure we preserve the authentication context for AJAX responses
-                Response.Headers.Add("X-Preserve-Auth", "true");
+                Response.Headers.Append("X-Preserve-Auth", "true");
 
                 return PartialView("_SearchFlightsPartial", listVM);
             }
@@ -84,7 +83,7 @@ namespace FlightApp.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken] // Add anti-forgery validation
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> GetRoutes(RouteCityVM entity)
         {
             if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0 || entity.DepartureDate < DateOnly.FromDateTime(DateTime.Now))
@@ -109,7 +108,6 @@ namespace FlightApp.Controllers
                         }
                         catch (Exception ex)
                         {
-                            // For AJAX requests, return a JSON result with error
                             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                             {
                                 return Json(new { success = false, message = "Error loading flight data" });
@@ -137,14 +135,12 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                // Ensure we preserve the authentication context for AJAX responses
-                Response.Headers.Add("X-Preserve-Auth", "true");
+                Response.Headers.Append("X-Preserve-Auth", "true");
 
                 return PartialView("_SearchRoutesPartial", listVM);
             }
             catch (Exception ex)
             {
-                // For AJAX requests, return a JSON result with error
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     return Json(new { success = false, message = ex.Message });
