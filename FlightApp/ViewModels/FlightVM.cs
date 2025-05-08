@@ -10,7 +10,8 @@ namespace FlightApp.ViewModels
         public DateTime? DepartureTime { get; set; }
         public DateTime? ArrivalTime { get; set; }
         public double? Price { get; set; }
-        public IEnumerable<TicketVM>? Tickets { get; set; }
+        public IEnumerable<Ticket>? Tickets { get; set; } = new List<Ticket>();
+        public int seating { get; set; }
 
     }
 }
