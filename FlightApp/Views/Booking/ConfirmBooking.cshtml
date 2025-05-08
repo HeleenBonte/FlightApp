@@ -88,7 +88,7 @@
                     <h4>Payment Information</h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="ProcessPayment" asp-controller="ShoppingCart" method="post">
+                    <form asp-action="ProcessPayment" asp-controller="Booking" method="post">
                         <input type="hidden" name="BookingId" value="0" />
                         <input type="hidden" name="RouteId" value="@Model.RouteId" />
                         <input type="hidden" name="UserId" value="@Model.UserId" />
@@ -120,7 +120,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Index" class="btn btn-secondary">Back to Cart</a>
+                            <a asp-action="Index" asp-controller="ShoppingCart" class="btn btn-secondary">Back to Cart</a>
                             <button type="submit" class="btn btn-success btn-lg">Confirm Payment</button>
                         </div>
                     </form>

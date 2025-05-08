@@ -59,6 +59,7 @@
                         <p><strong>Route ID:</strong> @Model.RouteId</p>
                         <p><strong>From:</strong> @Model.DepartureCity</p>
                         <p><strong>To:</strong> @Model.ArrivalCity</p>
+                        <p><strong>Departure:</strong> @(Model.DepartureTime?.ToString("dddd, d MMMM yyyy, HH:mm"))</p>
                     </div>
                 </div>
             </div>
@@ -77,6 +78,7 @@
                                 <th>Arrival Time</th>
                                 <th>Seat</th>
                                 <th>Class</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,26 +88,21 @@
                                 var flightInfos = ViewBag.FlightInfo as Dictionary<int, dynamic>;
                                 var flightInfo = flightInfos?.ContainsKey(ticket.FlightId) == true ? flightInfos[ticket.FlightId] : null;
 
-                                // Get departure/arrival city based on flight ID
-                                string departureCity = ticket.FlightId == 325 ? "Dubai" :
-                                ticket.FlightId == 333 ? "London" : "New York";
-
-                                string arrivalCity = ticket.FlightId == 325 ? "Tokyo" :
-                                ticket.FlightId == 333 ? "Dubai" : "London";
-
-                                string departureTime = ticket.FlightId == 325 ? "08/05/2025 09:00" :
-                                ticket.FlightId == 333 ? "08/05/2025 17:00" : "08/05/2025 07:30";
-
-                                string arrivalTime = ticket.FlightId == 325 ? "08/05/2025 18:30" :
-                                ticket.FlightId == 333 ? "08/05/2025 23:45" : "08/05/2025 14:30";
-
-                                // Determine the booking class based on passenger ID and booking class ID
-                                string bookingClass = ticket.BookingClassId == 1 ? "EconomyClass" :
-                                ticket.BookingClassId == 2 ? "BusinessClass" :
-                                ticket.BookingClassId == 3 ? "FirstClass" : "Standard";
+                                // Default values if flight info not available
+                                string departureCity = flightInfo?.DepartureCity ?? "N/A";
+                                string arrivalCity = flightInfo?.ArrivalCity ?? "N/A";
+                                string departureTime = flightInfo?.DepartureTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
+                                string arrivalTime = flightInfo?.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
+                                string bookingClass = "";
 
                                 if (passenger != null)
                                 {
+                                    // Determine booking class based on ID
+                                    if (ticket.BookingClassId == 1) bookingClass = "Economy";
+                                    else if (ticket.BookingClassId == 2) bookingClass = "Business";
+                                    else if (ticket.BookingClassId == 3) bookingClass = "First Class";
+                                    else bookingClass = "Standard";
+
                                     <tr>
                                         <td>@passenger.FirstName @passenger.LastName</td>
                                         <td>@ticket.FlightId</td>
@@ -115,6 +112,11 @@
                                         <td>@arrivalTime</td>
                                         <td>@ticket.SeatNumber</td>
                                         <td>@bookingClass</td>
+                                        <td>
+                                            <a href="@Url.Action("DownloadTicket", "Booking", new { ticketId = ticket.Id })" class="btn btn-sm btn-primary" target="_blank">
+                                                <i class="bi bi-download"></i> Download Ticket
+                                            </a>
+                                        </td>
                                     </tr>
                                 }
                             }
@@ -134,6 +136,7 @@
                             <li>Please arrive at the airport at least 2 hours before your scheduled departure.</li>
                             <li>Don't forget to bring your passport or valid ID.</li>
                             <li>Keep your booking reference number handy for check-in.</li>
+                            <li>A copy of your tickets has been sent to your email address.</li>
                         </ul>
                     </div>
                 </div>

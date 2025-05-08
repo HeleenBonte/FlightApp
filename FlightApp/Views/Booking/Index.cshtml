@@ -1,10 +1,17 @@
-﻿
-@{
-    ViewData["Title"] = "Index";
+﻿@{
+    ViewData["Title"] = "Bookings";
 }
 
-<h1>Index</h1>
-
-<form asp-action="ConfirmBooking" method="post" enctype="multipart/form-data">
-    <button type="submit" class="btn btn-primary">upload</button>
-</form>
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2>Your Bookings</h2>
+        </div>
+        <div class="card-body">
+            <p>This page will display your booking history.</p>
+            <a asp-controller="Flights" asp-action="GetRoutes" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>Search for Flights
+            </a>
+        </div>
+    </div>
+</div>
