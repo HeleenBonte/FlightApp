@@ -39,17 +39,24 @@ namespace FlightApp.Controllers
                 return View("Error");
             }
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(FlightsCityVM entity)
         {
             if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0 || entity.DepartureDate < DateOnly.FromDateTime(DateTime.Now))
             {
                 ModelState.AddModelError("", "Vul alstublieft alle velden in.");
             }
+
             try
             {
                 var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
+
+                // Ensure we preserve the authentication context for AJAX responses
+                Response.Headers.Add("X-Preserve-Auth", "true");
+
                 return PartialView("_SearchFlightsPartial", listVM);
             }
             catch (Exception ex)
@@ -58,6 +65,7 @@ namespace FlightApp.Controllers
                 return View("Error");
             }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetRoutes()
