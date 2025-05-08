@@ -57,6 +57,18 @@ namespace FlightApp.AutoMapper
                     src =>src.RouteNav.DepartureTime))
                 ;
 
+            //BookingHistory
+            CreateMap<BookingHistory, BookingHistoryVM>()
+                .ForMember(dest => dest.DepartureCity,
+                    opts => opts.MapFrom(
+                        src => src.Booking.Route.DepartureCity.CityName))
+                .ForMember(dest => dest.ArrivalCity,
+                opts => opts.MapFrom(
+                    src => src.Booking.Route.ArrivalCity.CityName))
+                .ForMember(dest => dest.Passengers,
+                opts => opts.MapFrom(
+                    src => src.Booking.Passengers))
+                ;
 
 
             // CreateMap<Source, Destination>();

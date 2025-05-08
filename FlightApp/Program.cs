@@ -76,6 +76,9 @@ builder.Services.AddTransient<IRouteService, RouteService>();
 builder.Services.AddTransient<IDAO<Ticket>, TicketDAO>();
 builder.Services.AddTransient<IService<Ticket>, TicketService>();
 
+builder.Services.AddTransient<IBookingHistoryDAO, BookingHistoryDAO>();
+builder.Services.AddTransient<IBookingHistoryService, BookingHistoryService>();
+
 builder.Services.AddTransient<ICreatePDF, CreatePDF>();
 builder.Services.AddTransient<IEmailSend, EmailSend>();
 
