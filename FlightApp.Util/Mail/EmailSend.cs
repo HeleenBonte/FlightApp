@@ -18,7 +18,7 @@ namespace FlightApp.Util.Mail
             _emailSettings = emailSettings.Value;
         }
 
-        public async Task SendConfirmEmailAsync(string email, string subject, string message)
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
             var mail = new MailMessage();
             mail.To.Add(new MailAddress(email));
@@ -68,5 +68,6 @@ namespace FlightApp.Util.Mail
             catch (Exception ex)
             { throw ex; }
         }
+
     }
 }

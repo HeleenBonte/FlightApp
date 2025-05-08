@@ -19,26 +19,28 @@ using NuGet.Configuration;
 using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
-//var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
+//var connectionString1 = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 
 // Key Vault settings
 string? vaultUrl = builder.Configuration["KeyVault:VaultUrl"];
-string? secretName = builder.Configuration["KeyVault:SecretName"];
+string? dbSecretName = builder.Configuration["KeyVault:dbSecretName"];
+string? mailSecretName = builder.Configuration["KeyVault:mailSecretName"];
 
 // Maak een client met default credentials (werkt lokaal met ingelogde gebruiker, en in Azure met managed identity)
 var client = new SecretClient(new Uri(vaultUrl), new DefaultAzureCredential());
 
-KeyVaultSecret secret = client.GetSecret(secretName);
+KeyVaultSecret dbSecret = client.GetSecret(dbSecretName);
+KeyVaultSecret mailSecret = client.GetSecret(mailSecretName);
 
 // Add services to the container.
-var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"] = secret.Value;
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"] = dbSecret.Value;
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDbContext<FlightsDbContext>(options =>
        options.UseSqlServer(connectionString));
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Configuration["Emailsettings:Password"] = "jqql zhte fczz byrq";
+builder.Configuration["Emailsettings:Password"] = mailSecret.Value;
 builder.Services.AddSingleton<IEmailSend, EmailSend>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
