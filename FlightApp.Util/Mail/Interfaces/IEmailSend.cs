@@ -9,5 +9,6 @@ namespace FlightApp.Util.Mail.Interfaces
     public interface IEmailSend
     {
         Task SendEmailAsync(string email, string subject, string message, Stream stream);
+        Task SendConfirmEmailAsync(string email, string subject, string message);
     }
 }

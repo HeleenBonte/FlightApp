@@ -17,6 +17,31 @@ namespace FlightApp.Util.Mail
         {
             _emailSettings = emailSettings.Value;
         }
+
+        public async Task SendConfirmEmailAsync(string email, string subject, string message)
+        {
+            var mail = new MailMessage();
+            mail.To.Add(new MailAddress(email));
+            mail.From = new MailAddress("bonteheleen@gmail.com"); // hier komt jullie Gmail-adres
+            mail.Subject = subject;
+            mail.Body = message;
+            mail.IsBodyHtml = true;
+            try
+            {
+                using (var smtp = new SmtpClient(_emailSettings.MailServer))
+                {
+                    smtp.Port = _emailSettings.MailPort;
+                    smtp.EnableSsl = true;
+                    smtp.Credentials =
+                    new NetworkCredential(_emailSettings.Sender,
+                    _emailSettings.Password);
+                    await smtp.SendMailAsync(mail);
+                }
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
         public async Task SendEmailAsync(
         string email, string subject, string message, Stream stream)
         {
