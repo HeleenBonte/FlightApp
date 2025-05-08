@@ -161,8 +161,11 @@ namespace FlightApp.Controllers
                     ViewBag.ArrivalCityId = route.ArrivalCityId;
                 }
 
-                // Retrieve meal choices from the database and map to view model
-                var mealChoiceEntities = await _dbContext.MealChoices.ToListAsync();
+                // Retrieve meal choices from the database and map to view models
+                var mealChoiceEntities = await _dbContext.MealChoices
+                    .Include(m => m.City) // Include the City if you need it for filtering
+                    .ToListAsync();
+
                 var mealChoices = _mapper.Map<List<MealChoiceVM>>(mealChoiceEntities);
 
                 // Pass to ViewBag
@@ -176,6 +179,36 @@ namespace FlightApp.Controllers
                 return RedirectToAction("Index");
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SelectPassengers(int routeId, int passengerCount)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+
+                if (routeItem == null)
+                {
+                    TempData["Error"] = "Route not found in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Update passenger count
+                routeItem.PassengerCount = passengerCount;
+                SaveCartToSession(cart);
+
+                // Redirect back to GET action to show the updated form
+                return RedirectToAction("SelectPassengers", new { routeId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
