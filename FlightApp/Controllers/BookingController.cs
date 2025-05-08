@@ -7,6 +7,7 @@ using FlightApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 
 namespace FlightApp.Controllers
@@ -72,6 +73,7 @@ namespace FlightApp.Controllers
             return View(confirmVM);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> ProcessPayment(ConfirmBookingVM model)
         {
@@ -92,10 +94,21 @@ namespace FlightApp.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int savedBookingId = 0;
                 List<Ticket> createdTickets = new List<Ticket>();
+                // Store route information for later use in emails
+                var routeDepartureCity = "";
+                var routeArrivalCity = "";
+                var routeLayover1 = "";
+                var routeLayover2 = "";
 
                 // Process each route in the cart
                 foreach (var routeItem in cart.RouteItems)
                 {
+                    // Save route details for email
+                    routeDepartureCity = routeItem.DepartureCity;
+                    routeArrivalCity = routeItem.ArrivalCity;
+                    routeLayover1 = routeItem.Layover1;
+                    routeLayover2 = routeItem.Layover2;
+
                     // Create a new booking
                     var booking = new Booking
                     {
@@ -174,20 +187,21 @@ namespace FlightApp.Controllers
                 await _dbContext.SaveChangesAsync();
 
                 // Send confirmation emails to each passenger with their tickets
-                var groupedTickets = createdTickets
+                var passengerGroups = createdTickets
                     .GroupBy(t => t.PassengerId)
                     .ToList();
 
-                foreach (var ticketGroup in groupedTickets)
+                foreach (var passengerGroup in passengerGroups)
                 {
                     var passenger = await _dbContext.Passengers
-                        .FirstOrDefaultAsync(p => p.PassengerId == ticketGroup.Key);
+                        .FirstOrDefaultAsync(p => p.PassengerId == passengerGroup.Key);
 
                     if (passenger != null && !string.IsNullOrEmpty(passenger.Email))
                     {
-                        foreach (var ticket in ticketGroup)
+                        // Get all full ticket data for this passenger
+                        var fullTickets = new List<Ticket>();
+                        foreach (var ticket in passengerGroup)
                         {
-                            // We need to load the complete ticket with all related data for PDF generation
                             var fullTicket = await _dbContext.Tickets
                                 .Include(t => t.Passenger)
                                 .Include(t => t.Flight)
@@ -200,13 +214,87 @@ namespace FlightApp.Controllers
 
                             if (fullTicket != null)
                             {
-                                var pdfDoc = _createPDF.CreatePDFDocumentAsync(fullTicket);
-                                await _emailSender.SendEmailAsync(
-                                    passenger.Email,
-                                    "Your Zephyrus Airlines Ticket",
-                                    $"Dear {passenger.FirstName} {passenger.LastName},\n\nThank you for booking with Zephyrus Airlines. Your ticket is attached.\n\nFlight: {ticket.FlightId}\nSeat: {ticket.SeatNumber}\n\nSafe travels!\nZephyrus Airlines Team",
-                                    pdfDoc);
+                                fullTickets.Add(fullTicket);
                             }
+                        }
+
+                        if (fullTickets.Count > 0)
+                        {
+                            // Get route description using stored values
+                            string routeDescription = $"{routeDepartureCity} to {routeArrivalCity}";
+
+                            // Add layover information if present
+                            if (!string.IsNullOrEmpty(routeLayover1))
+                            {
+                                routeDescription += $" via {routeLayover1}";
+                                if (!string.IsNullOrEmpty(routeLayover2))
+                                {
+                                    routeDescription += $" and {routeLayover2}";
+                                }
+                            }
+
+                            // Create simplified email message
+                            var message = new StringBuilder();
+                            message.AppendLine($"Dear {passenger.FirstName} {passenger.LastName},");
+                            message.AppendLine();
+                            message.AppendLine($"Thank you for booking with Zephyrus Airlines. Here are all your tickets for route: {routeDescription}");
+                            message.AppendLine();
+
+                            // Include flight details
+                            foreach (var ticket in fullTickets.OrderBy(t => t.Flight.DepartureTime))
+                            {
+                                message.AppendLine($"Flight: {ticket.Flight.DepartureCityNavigation.CityName} to {ticket.Flight.ArrivalCityNavigation.CityName}");
+                                message.AppendLine($"Departure: {ticket.Flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm")}");
+                                message.AppendLine($"Arrival: {ticket.Flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm")}");
+                                message.AppendLine($"Seat: {ticket.SeatNumber}");
+                                message.AppendLine($"Class: {ticket.BookingClass.Description}");
+
+                                // Improve meal description
+                                string mealDescription = ticket.MealChoice?.Type ?? "Standard Meal";
+                                if (mealDescription == "Vegetarian") mealDescription = "Vegetarian Meal";
+                                if (mealDescription == "Vegan") mealDescription = "Vegan Meal";
+                                if (mealDescription == "Gluten-free") mealDescription = "Gluten-Free Meal";
+                                if (mealDescription == "Kosher") mealDescription = "Kosher Meal";
+                                if (mealDescription == "Halal") mealDescription = "Halal Meal";
+                                if (mealDescription == "Diabetic") mealDescription = "Diabetic Meal";
+                                if (mealDescription == "Low sodium") mealDescription = "Low Sodium Meal";
+                                if (mealDescription == "Standard") mealDescription = "Standard Meal";
+
+                                message.AppendLine($"Meal: {mealDescription}");
+                                message.AppendLine();
+                            }
+
+                            message.AppendLine("Safe travels!");
+                            message.AppendLine("Zephyrus Airlines Team");
+
+                            // Prepare list of PDF attachments
+                            var attachments = new List<(string fileName, byte[] content, string contentType)>();
+
+                            // Generate all PDFs and add to attachments list
+                            for (int i = 0; i < fullTickets.Count; i++)
+                            {
+                                var ticket = fullTickets[i];
+                                var pdfStream = _createPDF.CreatePDFDocumentAsync(ticket);
+
+                                // Convert the stream to byte array
+                                byte[] pdfBytes;
+                                pdfStream.Position = 0;
+                                using (var memoryStream = new MemoryStream())
+                                {
+                                    await pdfStream.CopyToAsync(memoryStream);
+                                    pdfBytes = memoryStream.ToArray();
+                                }
+
+                                var fileName = $"Ticket-{ticket.Flight.DepartureCityNavigation.CityName}-to-{ticket.Flight.ArrivalCityNavigation.CityName}-Seat{ticket.SeatNumber}.pdf";
+                                attachments.Add((fileName, pdfBytes, "application/pdf"));
+                            }
+
+                            // Send a single email with all ticket PDFs as attachments
+                            await _emailSender.SendEmailWithAttachmentsAsync(
+                                passenger.Email,
+                                $"Your Zephyrus Airlines Tickets - {routeDescription}",
+                                message.ToString(),
+                                attachments);
                         }
                     }
                 }
@@ -224,6 +312,8 @@ namespace FlightApp.Controllers
                 return RedirectToAction("ConfirmBooking");
             }
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> BookingConfirmed(int id)

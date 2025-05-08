@@ -69,5 +69,43 @@ namespace FlightApp.Util.Mail
             { throw ex; }
         }
 
+        public async Task SendEmailWithAttachmentsAsync(string email, string subject, string message,
+    List<(string fileName, byte[] content, string contentType)> attachments)
+        {
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("bonteheleen@gmail.com"), // Use the same email as in other methods
+                Subject = subject,
+                Body = message,
+                IsBodyHtml = true // Keeping consistent with other methods
+            };
+
+            mailMessage.To.Add(new MailAddress(email));
+
+            // Add all attachments
+            foreach (var attachment in attachments)
+            {
+                var memoryStream = new MemoryStream(attachment.content);
+                mailMessage.Attachments.Add(new Attachment(memoryStream, attachment.fileName, attachment.contentType));
+            }
+
+            try
+            {
+                using (var smtpClient = new SmtpClient(_emailSettings.MailServer))
+                {
+                    smtpClient.Port = _emailSettings.MailPort;
+                    smtpClient.EnableSsl = true;
+                    smtpClient.Credentials = new NetworkCredential(
+                        _emailSettings.Sender,
+                        _emailSettings.Password);
+
+                    await smtpClient.SendMailAsync(mailMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

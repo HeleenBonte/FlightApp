@@ -10,5 +10,7 @@ namespace FlightApp.Util.Mail.Interfaces
     {
         Task SendEmailAsync(string email, string subject, string message, Stream stream);
         Task SendEmailAsync(string email, string subject, string message);
+        Task SendEmailWithAttachmentsAsync(string email, string subject, string message, List<(string fileName, byte[] content, string contentType)> attachments);
+
     }
 }
