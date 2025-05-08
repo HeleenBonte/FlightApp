@@ -616,7 +616,7 @@ namespace FlightApp.Controllers
 
 
         [HttpGet]
-        public IActionResult BookingConfirmed(int id)
+        public async Task<IActionResult> BookingConfirmed(int id)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -625,28 +625,89 @@ namespace FlightApp.Controllers
 
             try
             {
-                // Create a simple booking confirmation viewmodel for now
-                // This is a temporary solution until we can fetch the real data
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Retrieve the booking with all related data
+                var booking = await _dbContext.Bookings
+                    .Include(b => b.Route)
+                        .ThenInclude(r => r.DepartureCity)
+                    .Include(b => b.Route)
+                        .ThenInclude(r => r.ArrivalCity)
+                    .Include(b => b.Passengers)
+                    .FirstOrDefaultAsync(b => b.BookingId == id);
+
+                if (booking == null)
+                {
+                    ViewBag.ErrorMessage = $"Booking with ID {id} not found.";
+                    return View(new ConfirmBookingVM
+                    {
+                        BookingId = id,
+                        BookingTime = DateTime.Now,
+                        DepartureCity = "Not Found",
+                        ArrivalCity = "Not Found",
+                        Passengers = new List<PassengerVM>()
+                    });
+                }
+
+                // Get all tickets related to this booking's passengers and flights
+                var tickets = await _dbContext.Tickets
+                    .Include(t => t.BookingClass)
+                    .Include(t => t.MealChoice)
+                    .Where(t => booking.Passengers.Select(p => p.PassengerId).Contains(t.PassengerId))
+                    .ToListAsync();
+
                 var confirmVM = new ConfirmBookingVM
                 {
-                    BookingId = id,
-                    BookingTime = DateTime.Now,
-                    PaymentStatus = true,
-                    DepartureCity = "Your Departure City",
-                    ArrivalCity = "Your Destination",
-                    Passengers = new List<PassengerVM>(),
-                    Tickets = new List<TicketVM>()
+                    BookingId = booking.BookingId,
+                    UserId = booking.UserId,
+                    BookingTime = booking.BookingTime,
+                    PaymentStatus = booking.PaymentStatus,
+                    RouteId = booking.RouteId,
+                    DepartureCity = booking.Route?.DepartureCity?.CityName ?? "Unknown Departure",
+                    ArrivalCity = booking.Route?.ArrivalCity?.CityName ?? "Unknown Destination",
+                    DepartureTime = booking.Route?.DepartureTime,
+                    ArrivalTime = booking.Route?.ArrivalTime
                 };
 
-                // Add a sample passenger for display
-                confirmVM.Passengers.Add(new PassengerVM
+                // Map passengers
+                foreach (var passenger in booking.Passengers)
                 {
-                    FirstName = "Sample",
-                    LastName = "Passenger",
-                    FlightId = 123,
-                    SeatNumber = 42,
-                    BookingClassName = "Economy Class"
-                });
+                    var passengerVM = new PassengerVM
+                    {
+                        PassengerId = passenger.PassengerId,
+                        FirstName = passenger.FirstName,
+                        LastName = passenger.LastName,
+                        Email = passenger.Email,
+                        DateOfBirth = passenger.Birthdate.ToDateTime(TimeOnly.MinValue)
+                    };
+
+                    // Find passenger's ticket
+                    var ticket = tickets.FirstOrDefault(t => t.PassengerId == passenger.PassengerId);
+                    if (ticket != null)
+                    {
+                        passengerVM.BookingClassId = ticket.BookingClassId;
+                        passengerVM.BookingClassName = ticket.BookingClass?.Description ?? "Standard";
+                        passengerVM.MealChoiceId = ticket.MealChoiceId;
+                        passengerVM.SeatNumber = ticket.SeatNumber;
+                        passengerVM.FlightId = ticket.FlightId;
+                    }
+
+                    confirmVM.Passengers.Add(passengerVM);
+                }
+
+                // Map tickets
+                foreach (var ticket in tickets)
+                {
+                    confirmVM.Tickets.Add(new TicketVM
+                    {
+                        Id = ticket.TicketId,
+                        FlightId = ticket.FlightId,
+                        BookingClassId = ticket.BookingClassId,
+                        PassengerId = ticket.PassengerId,
+                        SeatNumber = ticket.SeatNumber,
+                        MealChoiceId = ticket.MealChoiceId
+                    });
+                }
 
                 return View(confirmVM);
             }
@@ -656,10 +717,12 @@ namespace FlightApp.Controllers
                 return View(new ConfirmBookingVM
                 {
                     BookingId = id,
-                    BookingTime = DateTime.Now
+                    BookingTime = DateTime.Now,
+                    DepartureCity = "Error Loading City",
+                    ArrivalCity = "Error Loading City",
+                    Passengers = new List<PassengerVM>()
                 });
             }
         }
-
     }
 }
