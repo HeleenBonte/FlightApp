@@ -132,6 +132,17 @@
                                         </select>
                                         <div class="invalid-feedback">Meal preference is required.</div>
                                     </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Booking Class</label>
+                                        <select name="passengers[@i].BookingClassId" class="form-select" required>
+                                            <option value="">Select a booking class</option>
+                                            @foreach (var bookingClass in ViewBag.BookingClasses as List<BookingClassVM>)
+                                            {
+                                                <option value="@bookingClass.BookingClassId">@bookingClass.Description (@(bookingClass.PriceFactor == 1.0 ? "Standard Price" : $"{bookingClass.PriceFactor}x Price"))</option>
+                                            }
+                                        </select>
+                                        <div class="invalid-feedback">Booking class is required.</div>
+                                    </div>
                                 </div>
                                 <div class="duplicate-name-error text-danger" style="display: none;">
                                     Passenger name must be unique. Another passenger has the same name.

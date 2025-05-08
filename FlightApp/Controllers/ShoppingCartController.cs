@@ -163,13 +163,16 @@ namespace FlightApp.Controllers
 
                 // Retrieve meal choices from the database and map to view models
                 var mealChoiceEntities = await _dbContext.MealChoices
-                    .Include(m => m.City) // Include the City if you need it for filtering
+                    .Include(m => m.City)
                     .ToListAsync();
 
                 var mealChoices = _mapper.Map<List<MealChoiceVM>>(mealChoiceEntities);
-
-                // Pass to ViewBag
                 ViewBag.MealChoices = mealChoices;
+
+                // Retrieve booking classes from the database and map to view models
+                var bookingClassEntities = await _dbContext.BookingClasses.ToListAsync();
+                var bookingClasses = _mapper.Map<List<BookingClassVM>>(bookingClassEntities);
+                ViewBag.BookingClasses = bookingClasses;
 
                 return View(routeItem);
             }
@@ -179,36 +182,6 @@ namespace FlightApp.Controllers
                 return RedirectToAction("Index");
             }
         }
-
-        [HttpPost]
-        public async Task<IActionResult> SelectPassengers(int routeId, int passengerCount)
-        {
-            try
-            {
-                var cart = GetCartFromSession();
-                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
-
-                if (routeItem == null)
-                {
-                    TempData["Error"] = "Route not found in your basket.";
-                    return RedirectToAction("Index");
-                }
-
-                // Update passenger count
-                routeItem.PassengerCount = passengerCount;
-                SaveCartToSession(cart);
-
-                // Redirect back to GET action to show the updated form
-                return RedirectToAction("SelectPassengers", new { routeId });
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"An error occurred: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-
 
         [HttpPost]
         public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
@@ -239,10 +212,10 @@ namespace FlightApp.Controllers
                         return RedirectToAction("SelectPassengers", new { routeId = routeId });
                     }
 
-                    // Validate that each passenger has selected a meal choice
-                    if (selectedPassengers.Any(p => p.MealChoiceId == 0))
+                    // Validate that each passenger has selected a meal choice and booking class
+                    if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
                     {
-                        TempData["Error"] = "Each passenger must select a meal preference.";
+                        TempData["Error"] = "Each passenger must select a meal preference and booking class.";
                         return RedirectToAction("SelectPassengers", new { routeId = routeId });
                     }
 
@@ -260,6 +233,16 @@ namespace FlightApp.Controllers
                     // Save passengers to database (if they don't already exist)
                     foreach (var passengerVM in selectedPassengers)
                     {
+                        // Get booking class information
+                        var bookingClass = await _dbContext.BookingClasses
+                            .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
+
+                        if (bookingClass != null)
+                        {
+                            passengerVM.BookingClassName = bookingClass.Description;
+                            passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
+                        }
+
                         // Check if passenger with same name and email already exists
                         var existingPassenger = await _dbContext.Passengers
                             .FirstOrDefaultAsync(p =>
@@ -275,9 +258,7 @@ namespace FlightApp.Controllers
                                 FirstName = passengerVM.FirstName,
                                 LastName = passengerVM.LastName,
                                 Email = passengerVM.Email,
-                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth),
-                                // Don't set Country field - you mentioned to forget this
-                                
+                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
                             };
 
                             // Add new passenger to database
@@ -297,13 +278,13 @@ namespace FlightApp.Controllers
                     // Update the passenger list in the cart
                     routeItem.Passengers = selectedPassengers;
 
-                    // Recalculate the total price based on the number of passengers and all flights in the route
-                    routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * passengerCount;
+                    // Recalculate the total price based on booking classes
+                    routeItem.TotalPrice = routeItem.GetTotalPrice();
 
                     SaveCartToSession(cart);
                     TempData["Message"] = "Passenger information saved successfully.";
 
-                    // Explicitly redirect to the Index action
+                    // Redirect to the Index action
                     return RedirectToAction("Index", "ShoppingCart");
                 }
                 else
@@ -319,6 +300,34 @@ namespace FlightApp.Controllers
             }
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> SelectPassengers(int routeId, int passengerCount)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+
+                if (routeItem == null)
+                {
+                    TempData["Error"] = "Route not found in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Update passenger count
+                routeItem.PassengerCount = passengerCount;
+                SaveCartToSession(cart);
+
+                // Redirect back to GET action to show the updated form
+                return RedirectToAction("SelectPassengers", new { routeId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
 
         [HttpPost]
         public IActionResult IncreasePassengerCount(int routeId)

@@ -74,6 +74,9 @@ namespace FlightApp.AutoMapper
             //MealChoice
             CreateMap<MealChoice, MealChoiceVM>();
 
+            //BookingClass
+            CreateMap<BookingClass, BookingClassVM>();
+
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();
