@@ -137,7 +137,7 @@ namespace FlightApp.Areas.Identity.Pages.Account
                 {
                     FirstName = Input.FirstName,
                     LastName = Input.LastName,
-                    UserName = Input.FirstName,
+                    UserName = Input.Email,
                     Email = Input.Email,
                     DateOfBirth = Input.DateOfBirth
 
