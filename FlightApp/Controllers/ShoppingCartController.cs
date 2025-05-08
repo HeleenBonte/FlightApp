@@ -162,7 +162,7 @@ namespace FlightApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
+        public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
         {
             try
             {
@@ -208,7 +208,44 @@ namespace FlightApp.Controllers
                         return RedirectToAction("SelectPassengers", new { routeId = routeId });
                     }
 
-                    // Update the passenger list
+                    // Save passengers to database (if they don't already exist)
+                    foreach (var passengerVM in selectedPassengers)
+                    {
+                        // Check if passenger with same name and email already exists
+                        var existingPassenger = await _dbContext.Passengers
+                            .FirstOrDefaultAsync(p =>
+                                p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
+                                p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
+                                p.Email.ToLower() == passengerVM.Email.ToLower());
+
+                        if (existingPassenger == null)
+                        {
+                            // Create new passenger entity
+                            var passenger = new Passenger
+                            {
+                                FirstName = passengerVM.FirstName,
+                                LastName = passengerVM.LastName,
+                                Email = passengerVM.Email,
+                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth),
+                                // Don't set Country field - you mentioned to forget this
+                                Country = string.Empty // Set to empty string as it's required in the model
+                            };
+
+                            // Add new passenger to database
+                            await _dbContext.Passengers.AddAsync(passenger);
+                            await _dbContext.SaveChangesAsync();
+
+                            // Update the PassengerId in the ViewModel
+                            passengerVM.PassengerId = passenger.PassengerId;
+                        }
+                        else
+                        {
+                            // Use the existing passenger's ID
+                            passengerVM.PassengerId = existingPassenger.PassengerId;
+                        }
+                    }
+
+                    // Update the passenger list in the cart
                     routeItem.Passengers = selectedPassengers;
 
                     // Recalculate the total price based on the number of passengers and all flights in the route
