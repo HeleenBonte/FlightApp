@@ -1,9 +1,11 @@
 /**
  * Generates passenger forms based on the selected count
  * @param {number} count - The number of passenger forms to generate
- * @param {Array} mealChoices - Array of meal choice objects from the database
+ * @param {Array} mealChoices - Array of meal choice objects
+ * @param {number} departureCityId - The departure city ID
+ * @param {number} arrivalCityId - The arrival city ID
  */
-function generatePassengerForms(count, mealChoices) {
+function generatePassengerForms(count, mealChoices, departureCityId, arrivalCityId) {
     const container = document.getElementById('passengersContainer');
     const countDisplay = document.getElementById('passengerCountDisplay');
 
@@ -13,14 +15,23 @@ function generatePassengerForms(count, mealChoices) {
     // Clear the container
     container.innerHTML = '';
 
-    console.log("Generating forms with meal choices:", mealChoices);
+    // Filter meal choices that are available for this flight
+    const availableMealChoices = mealChoices.filter(meal => {
+        // If no city restriction is set (null cityId), the meal is available on all flights
+        if (!meal.cityId)
+            return true;
+
+        // Otherwise, the meal is only available if it matches either the departure or arrival city
+        return meal.cityId === departureCityId || meal.cityId === arrivalCityId;
+    });
 
     // Build meal choice options
     let mealChoiceOptions = '<option value="">Select a meal option</option>';
-    if (mealChoices && mealChoices.length) {
-        mealChoices.forEach(meal => {
-            
-            mealChoiceOptions += `<option value="${meal.MealChoiceId}">${meal.Type}</option>`;
+    if (availableMealChoices && availableMealChoices.length) {
+        availableMealChoices.forEach(meal => {
+            let mealText = meal.type;
+            // No need to add city name since we don't have that in our view model
+            mealChoiceOptions += `<option value="${meal.mealChoiceId}">${mealText}</option>`;
         });
     }
 

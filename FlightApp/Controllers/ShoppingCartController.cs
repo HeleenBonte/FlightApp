@@ -150,14 +150,24 @@ namespace FlightApp.Controllers
                     SaveCartToSession(cart);
                 }
 
-                // Retrieve meal choices from the database directly
-                var mealChoices = await _dbContext.MealChoices.ToListAsync();
+                // Get the route details to determine departure and arrival cities
+                var route = await _dbContext.Routes
+                    .FirstOrDefaultAsync(r => r.RouteId == routeId);
+
+                // Store city IDs in ViewBag for filtering meal choices
+                if (route != null)
+                {
+                    ViewBag.DepartureCityId = route.DepartureCityId;
+                    ViewBag.ArrivalCityId = route.ArrivalCityId;
+                }
+
+                // Retrieve meal choices from the database and map to view model
+                var mealChoiceEntities = await _dbContext.MealChoices.ToListAsync();
+                var mealChoices = _mapper.Map<List<MealChoiceVM>>(mealChoiceEntities);
+
+                // Pass to ViewBag
                 ViewBag.MealChoices = mealChoices;
 
-                // Log meal choices count for debugging
-                Console.WriteLine($"Found {mealChoices.Count} meal choices");
-
-                // Return the view with the route item to allow passenger selection
                 return View(routeItem);
             }
             catch (Exception ex)

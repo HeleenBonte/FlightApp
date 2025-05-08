@@ -72,10 +72,8 @@ namespace FlightApp.AutoMapper
                     src => src.Booking.Passengers));
 
             //MealChoice
-            CreateMap<MealChoice, MealChoiceVM>()
-                .ForMember(dest => dest.CityId,
-                    opts => opts.MapFrom(
-                        src => src.City.CityId));
+            CreateMap<MealChoice, MealChoiceVM>();
+
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

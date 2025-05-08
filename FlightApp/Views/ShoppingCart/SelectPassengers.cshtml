@@ -1,13 +1,10 @@
 @model FlightApp.ViewModels.RouteCartItemVM
+@using FlightApp.ViewModels
 @{
     ViewData["Title"] = "Select Passengers";
-    var mealChoices = ViewBag.MealChoices as List<FlightApp.Domains.EntitiesDB.MealChoice> ?? new List<FlightApp.Domains.EntitiesDB.MealChoice>();
-    var jsonSettings = new System.Text.Json.JsonSerializerOptions
-    {
-        PropertyNamingPolicy = null,
-        WriteIndented = true
-    };
-    var mealChoicesJson = System.Text.Json.JsonSerializer.Serialize(mealChoices, jsonSettings);
+    var mealChoices = ViewBag.MealChoices as List<MealChoiceVM> ?? new List<MealChoiceVM>();
+    var departureCityId = ViewBag.DepartureCityId;
+    var arrivalCityId = ViewBag.ArrivalCityId;
 }
 
 <div class="container mt-4">
@@ -102,12 +99,14 @@
 @section Scripts {
     <script src="~/js/passengerForms.js"></script>
     <script>
-        // Define meal choices directly as a JavaScript object
-        var mealChoices = @Html.Raw(mealChoicesJson);
+        // Define meal choices directly as a JavaScript object - using proper serialization
+        var mealChoices = @Json.Serialize(mealChoices);
+        var departureCityId = @Json.Serialize(departureCityId);
+        var arrivalCityId = @Json.Serialize(arrivalCityId);
 
         document.addEventListener('DOMContentLoaded', function() {
             // Pass the meal choices directly to the generate function
-            generatePassengerForms(@Model.PassengerCount, mealChoices);
+            generatePassengerForms(@Model.PassengerCount, mealChoices, departureCityId, arrivalCityId);
 
             // Update the passenger count dropdown handler
             const passengerCountDropdown = document.getElementById('passengerCount');
