@@ -16,7 +16,7 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-@if (Model.RouteItems.Count == 0)
+@if (!Model.RouteItems.Any())
 {
     <div class="alert alert-warning">Your basket is empty.</div>
     <p>
@@ -28,49 +28,43 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Route</th>
+                <th>Time(s)</th>
+                <th>FlightId</th>
                 <th>Departure Time</th>
                 <th>Departure City</th>
                 <th>Arrival City</th>
                 <th>Arrival Time</th>
-                <th>Passengers</th>
                 <th>Price</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.RouteItems)
+            @foreach (var routeItem in Model.RouteItems)
             {
-                <tr>
-                    <td>@item.RouteId</td>
-                    <td>@item.DepartureTime.ToString("g")</td>
-                    <td>@item.DepartureCity</td>
-                    <td>@item.ArrivalCity</td>
-                    <td>@item.ArrivalTime?.ToString("g")</td>
-                    <td>
-                        <form asp-action="DecreasePassengerCount" method="post" style="display:inline;">
-                            <input type="hidden" name="routeId" value="@item.RouteId" />
-                            <button class="btn btn-sm btn-secondary" @(item.PassengerCount <= 1 ? "disabled" : "")> - </button>
-                        </form>
-                        @item.PassengerCount
-                        <form asp-action="IncreasePassengerCount" method="post" style="display:inline;">
-                            <input type="hidden" name="routeId" value="@item.RouteId" />
-                            <button class="btn btn-sm btn-secondary"> + </button>
-                        </form>
-                    </td>
-                    <td>€@item.TotalPrice</td>
-                    <td>
-                        <form asp-action="RemoveRouteFromCart" method="post">
-                            <input type="hidden" name="id" value="@item.RouteId" />
-                            <button type="submit" class="btn btn-danger">Remove</button>
-                        </form>
-                    </td>
-                </tr>
+                @foreach (var flight in routeItem.Flights)
+                {
+                    <tr>
+                        <td>@routeItem.PassengerCount</td>
+                        <td>@flight.FlightId</td>
+                        <td>@flight.DepartureTime?.ToString("g")</td>
+                        <td>@flight.DepartureCity</td>
+                        <td>@flight.ArrivalCity</td>
+                        <td>@flight.ArrivalTime?.ToString("g")</td>
+                        <td>€@((flight.Price ?? 0) * routeItem.PassengerCount)</td>
+                        <td>
+                            <form asp-action="RemoveFlightFromCart" method="post">
+                                <input type="hidden" name="routeId" value="@routeItem.RouteId" />
+                                <input type="hidden" name="flightId" value="@flight.FlightId" />
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-right"><strong>Total:</strong></td>
+                <td colspan="6" class="text-right"><strong>Total:</strong></td>
                 <td>€@Model.ComputeTotalValue()</td>
                 <td></td>
             </tr>

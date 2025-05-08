@@ -185,7 +185,7 @@ namespace FlightApp.Controllers
                         return RedirectToAction("SelectPassengers", new { routeId = routeId });
                     }
 
-                    // Recalculate the total price based on the number of passengers
+                    // Recalculate the total price based on the number of passengers and all flights in the route
                     routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * passengerCount;
 
                     SaveCartToSession(cart);
@@ -238,18 +238,41 @@ namespace FlightApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult RemoveRouteFromCart(int id)
+        public IActionResult RemoveFlightFromCart(int routeId, int flightId)
         {
             try
             {
                 var cart = GetCartFromSession();
-                var routeToRemove = cart.RouteItems.FirstOrDefault(r => r.RouteId == id);
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
-                if (routeToRemove != null)
+                if (routeItem != null)
                 {
-                    cart.RouteItems.Remove(routeToRemove);
-                    SaveCartToSession(cart);
-                    TempData["Message"] = "Route removed from your basket.";
+                    var flight = routeItem.Flights.FirstOrDefault(f => f.FlightId == flightId);
+                    if (flight != null)
+                    {
+                        // If this is the only flight in the route, remove the whole route
+                        if (routeItem.Flights.Count == 1)
+                        {
+                            cart.RouteItems.Remove(routeItem);
+                            TempData["Message"] = "Flight removed from your basket.";
+                        }
+                        else
+                        {
+                            // Otherwise remove just this flight
+                            routeItem.Flights.Remove(flight);
+
+                            // Recalculate the total price
+                            routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * routeItem.PassengerCount;
+
+                            TempData["Message"] = "Flight removed from your basket.";
+                        }
+
+                        SaveCartToSession(cart);
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Flight not found in your basket.";
+                    }
                 }
                 else
                 {
@@ -258,7 +281,7 @@ namespace FlightApp.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"An error occurred while removing the route: {ex.Message}";
+                TempData["Error"] = $"An error occurred while removing the flight: {ex.Message}";
             }
 
             return RedirectToAction("Index");
