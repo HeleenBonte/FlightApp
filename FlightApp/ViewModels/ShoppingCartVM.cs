@@ -1,12 +1,25 @@
-﻿using FlightApp.Domains.EntitiesDB;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FlightApp.Domains.EntitiesDB;
 
 namespace FlightApp.ViewModels
 {
     public class ShoppingCartVM
     {
-        public List<CartItemVM> CartItems { get; set; }
-        public double ComputeTotalValue() => CartItems.Sum(x => x.Passengers.Count * x.Price);
+        public List<CartItemVM> CartItems { get; set; } = new List<CartItemVM>();
+        public List<RouteCartItemVM> RouteItems { get; set; } = new List<RouteCartItemVM>();
+
+        public double ComputeTotalValue()
+        {
+            double flightTotal = CartItems.Sum(x => x.Passengers.Count * x.Price);
+            double routeTotal = RouteItems.Sum(routeItem =>
+                routeItem.Flights.Sum(flight => flight.Price ?? 0) * routeItem.PassengerCount);
+
+            return flightTotal + routeTotal;
+        }
+
     }
+
     public class CartItemVM
     {
         public int FlightId { get; set; }

@@ -1,0 +1,82 @@
+@model FlightApp.ViewModels.ShoppingCartVM
+
+@{
+    ViewData["Title"] = "Your Basket";
+}
+
+<h1>Your Basket</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (!Model.RouteItems.Any())
+{
+    <div class="alert alert-warning">Your basket is empty.</div>
+    <p>
+        <a asp-controller="Flights" asp-action="GetRoutes" class="btn btn-primary">Search for Routes</a>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Time(s)</th>
+                <th>FlightId</th>
+                <th>Departure Time</th>
+                <th>Departure City</th>
+                <th>Arrival City</th>
+                <th>Arrival Time</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var routeItem in Model.RouteItems)
+            {
+                @foreach (var flight in routeItem.Flights)
+                {
+                    <tr>
+                        <td>@routeItem.PassengerCount</td>
+                        <td>@flight.FlightId</td>
+                        <td>@flight.DepartureTime?.ToString("g")</td>
+                        <td>@flight.DepartureCity</td>
+                        <td>@flight.ArrivalCity</td>
+                        <td>@flight.ArrivalTime?.ToString("g")</td>
+                        <td>€@((flight.Price ?? 0) * routeItem.PassengerCount)</td>
+                        <td>
+                            <form asp-action="RemoveFlightFromCart" method="post">
+                                <input type="hidden" name="routeId" value="@routeItem.RouteId" />
+                                <input type="hidden" name="flightId" value="@flight.FlightId" />
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="text-right"><strong>Total:</strong></td>
+                <td>€@Model.ComputeTotalValue()</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <a asp-controller="Flights" asp-action="GetRoutes" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+        <div class="col-md-6 text-right">
+            <a href="#" class="btn btn-primary">Proceed to Checkout</a>
+        </div>
+    </div>
+}
