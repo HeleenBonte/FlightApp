@@ -1,0 +1,106 @@
+﻿@model FlightApp.ViewModels.ConfirmBookingVM
+@{
+    ViewData["Title"] = "Confirm Booking";
+}
+
+<div class="container">
+    <h1>Confirm Your Booking</h1>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2>Booking Details</h2>
+        </div>
+        <div class="card-body">
+            <h3>Route: @Model.DepartureCity to @Model.ArrivalCity</h3>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Passenger Name</th>
+                            <th>RouteId</th>
+                            <th>DepartureTime</th>
+                            <th>Departure City</th>
+                            <th>Arrival City</th>
+                            <th>Arrival Time</th>
+                            <th>Layover1</th>
+                            <th>Layover2</th>
+                            <th>BookingClass</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var passenger in Model.Passengers)
+                        {
+                            <tr>
+                                <td>@passenger.FirstName @passenger.LastName</td>
+                                <td>@Model.RouteId</td>
+                                <td>@(Model.DepartureTime.HasValue ? Model.DepartureTime.Value.ToString("d/MM/yyyy H:mm:ss") : "N/A")</td>
+                                <td>@Model.DepartureCity</td>
+                                <td>@Model.ArrivalCity</td>
+                                <td>@(Model.ArrivalTime.HasValue ? Model.ArrivalTime.Value.ToString("d/MM/yyyy H:mm:ss") : "N/A")</td>
+                                <td>@(string.IsNullOrEmpty(Model.Layover1) ? "-" : Model.Layover1)</td>
+                                <td>@(string.IsNullOrEmpty(Model.Layover2) ? "-" : Model.Layover2)</td>
+                                <td>@passenger.BookingClassName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <h4>Total Price: @Model.TotalPrice.ToString("C")</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Payment Information</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="ProcessPayment" method="post">
+                <input type="hidden" asp-for="BookingId" />
+                <input type="hidden" asp-for="RouteId" />
+                <input type="hidden" asp-for="UserId" />
+
+                <!-- Credit card details (for demo only, in production use a secure payment provider) -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456" required />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="text" class="form-control" placeholder="MM/YY" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-control" placeholder="123" required />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" class="form-control" placeholder="John Doe" required />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">Back to Cart</a>
+                    <button type="submit" class="btn btn-success btn-lg">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
