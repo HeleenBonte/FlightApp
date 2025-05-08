@@ -15,5 +15,7 @@
         public int BookingClassId { get; set; } = 1; // Default to Economy (ID 1)
         public string? BookingClassName { get; set; }
         public double BookingClassPriceFactor { get; set; } = 1.0; // Default price factor
+
+        public List<TicketDetailVM> TicketDetails { get; set; } = new List<TicketDetailVM>();
     }
 }

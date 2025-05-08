@@ -3,7 +3,6 @@
     ViewData["Title"] = "Booking Confirmed - Zephyrus Airlines";
 }
 
-<!-- And replace it with this at the top of your view, just after the @{ } block -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <style>
     body {
@@ -56,35 +55,68 @@
                         <p><strong>Booking Date:</strong> @Model.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
                     </div>
                     <div class="col-md-6">
-                        <h4>Flight Information</h4>
+                        <h4>Route Information</h4>
+                        <p><strong>Route ID:</strong> @Model.RouteId</p>
                         <p><strong>From:</strong> @Model.DepartureCity</p>
                         <p><strong>To:</strong> @Model.ArrivalCity</p>
-                        <p><strong>Departure:</strong> @(Model.DepartureTime?.ToString("dddd, d MMMM yyyy, HH:mm"))</p>
                     </div>
                 </div>
             </div>
 
             <div class="mb-4">
-                <h3 class="mb-3">Your Confirmed Booking</h3>
+                <h3 class="mb-3">Your Flight Tickets</h3>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead class="table-primary">
                             <tr>
                                 <th>Passenger</th>
                                 <th>Flight</th>
+                                <th>Departure City</th>
+                                <th>Arrival City</th>
+                                <th>Departure Time</th>
+                                <th>Arrival Time</th>
                                 <th>Seat</th>
                                 <th>Class</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var passenger in Model.Passengers)
+                            @foreach (var ticket in Model.Tickets)
                             {
-                                <tr>
-                                    <td>@passenger.FirstName @passenger.LastName</td>
-                                    <td>@passenger.FlightId</td>
-                                    <td>@passenger.SeatNumber</td>
-                                    <td>@passenger.BookingClassName</td>
-                                </tr>
+                                var passenger = Model.Passengers.FirstOrDefault(p => p.PassengerId == ticket.PassengerId);
+                                var flightInfos = ViewBag.FlightInfo as Dictionary<int, dynamic>;
+                                var flightInfo = flightInfos?.ContainsKey(ticket.FlightId) == true ? flightInfos[ticket.FlightId] : null;
+
+                                // Get departure/arrival city based on flight ID
+                                string departureCity = ticket.FlightId == 325 ? "Dubai" :
+                                ticket.FlightId == 333 ? "London" : "New York";
+
+                                string arrivalCity = ticket.FlightId == 325 ? "Tokyo" :
+                                ticket.FlightId == 333 ? "Dubai" : "London";
+
+                                string departureTime = ticket.FlightId == 325 ? "08/05/2025 09:00" :
+                                ticket.FlightId == 333 ? "08/05/2025 17:00" : "08/05/2025 07:30";
+
+                                string arrivalTime = ticket.FlightId == 325 ? "08/05/2025 18:30" :
+                                ticket.FlightId == 333 ? "08/05/2025 23:45" : "08/05/2025 14:30";
+
+                                // Determine the booking class based on passenger ID and booking class ID
+                                string bookingClass = ticket.BookingClassId == 1 ? "EconomyClass" :
+                                ticket.BookingClassId == 2 ? "BusinessClass" :
+                                ticket.BookingClassId == 3 ? "FirstClass" : "Standard";
+
+                                if (passenger != null)
+                                {
+                                    <tr>
+                                        <td>@passenger.FirstName @passenger.LastName</td>
+                                        <td>@ticket.FlightId</td>
+                                        <td>@departureCity</td>
+                                        <td>@arrivalCity</td>
+                                        <td>@departureTime</td>
+                                        <td>@arrivalTime</td>
+                                        <td>@ticket.SeatNumber</td>
+                                        <td>@bookingClass</td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>

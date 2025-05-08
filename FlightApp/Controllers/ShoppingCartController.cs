@@ -363,7 +363,7 @@ namespace FlightApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult RemoveFlightFromCart(int routeId, int flightId)
+        public IActionResult RemoveRouteFromCart(int routeId)
         {
             try
             {
@@ -372,32 +372,9 @@ namespace FlightApp.Controllers
 
                 if (routeItem != null)
                 {
-                    var flight = routeItem.Flights.FirstOrDefault(f => f.FlightId == flightId);
-                    if (flight != null)
-                    {
-                        // If this is the only flight in the route, remove the whole route
-                        if (routeItem.Flights.Count == 1)
-                        {
-                            cart.RouteItems.Remove(routeItem);
-                            TempData["Message"] = "Flight removed from your basket.";
-                        }
-                        else
-                        {
-                            // Otherwise remove just this flight
-                            routeItem.Flights.Remove(flight);
-
-                            // Recalculate the total price
-                            routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * routeItem.PassengerCount;
-
-                            TempData["Message"] = "Flight removed from your basket.";
-                        }
-
-                        SaveCartToSession(cart);
-                    }
-                    else
-                    {
-                        TempData["Error"] = "Flight not found in your basket.";
-                    }
+                    cart.RouteItems.Remove(routeItem);
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Route removed from your basket.";
                 }
                 else
                 {
@@ -406,11 +383,12 @@ namespace FlightApp.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"An error occurred while removing the flight: {ex.Message}";
+                TempData["Error"] = $"An error occurred while removing the route: {ex.Message}";
             }
 
             return RedirectToAction("Index");
         }
+
 
         private ShoppingCartVM GetCartFromSession()
         {
@@ -614,7 +592,6 @@ namespace FlightApp.Controllers
             }
         }
 
-
         [HttpGet]
         public async Task<IActionResult> BookingConfirmed(int id)
         {
@@ -649,12 +626,33 @@ namespace FlightApp.Controllers
                     });
                 }
 
-                // Get all tickets related to this booking's passengers and flights
+                // Get all tickets related to this booking's passengers
                 var tickets = await _dbContext.Tickets
                     .Include(t => t.BookingClass)
-                    .Include(t => t.MealChoice)
+                    .Include(t => t.Flight)
+                        .ThenInclude(f => f.DepartureCityNavigation)
+                    .Include(t => t.Flight)
+                        .ThenInclude(f => f.ArrivalCityNavigation)
                     .Where(t => booking.Passengers.Select(p => p.PassengerId).Contains(t.PassengerId))
                     .ToListAsync();
+
+                // Store flight info for the view
+                var flightInfo = new Dictionary<int, object>();
+                foreach (var ticket in tickets)
+                {
+                    if (!flightInfo.ContainsKey(ticket.FlightId) && ticket.Flight != null)
+                    {
+                        flightInfo[ticket.FlightId] = new
+                        {
+                            DepartureCity = ticket.Flight.DepartureCityNavigation?.CityName,
+                            ArrivalCity = ticket.Flight.ArrivalCityNavigation?.CityName,
+                            DepartureTime = ticket.Flight.DepartureTime,
+                            ArrivalTime = ticket.Flight.ArrivalTime,
+                            Price = ticket.Flight.Price
+                        };
+                    }
+                }
+                ViewBag.FlightInfo = flightInfo;
 
                 var confirmVM = new ConfirmBookingVM
                 {
@@ -666,7 +664,9 @@ namespace FlightApp.Controllers
                     DepartureCity = booking.Route?.DepartureCity?.CityName ?? "Unknown Departure",
                     ArrivalCity = booking.Route?.ArrivalCity?.CityName ?? "Unknown Destination",
                     DepartureTime = booking.Route?.DepartureTime,
-                    ArrivalTime = booking.Route?.ArrivalTime
+                    ArrivalTime = booking.Route?.ArrivalTime,
+                    Passengers = new List<PassengerVM>(),
+                    Tickets = new List<TicketVM>()
                 };
 
                 // Map passengers
@@ -681,32 +681,27 @@ namespace FlightApp.Controllers
                         DateOfBirth = passenger.Birthdate.ToDateTime(TimeOnly.MinValue)
                     };
 
-                    // Find passenger's ticket
-                    var ticket = tickets.FirstOrDefault(t => t.PassengerId == passenger.PassengerId);
-                    if (ticket != null)
+                    // Find passenger's tickets
+                    var passengerTickets = tickets.Where(t => t.PassengerId == passenger.PassengerId).ToList();
+
+                    foreach (var ticket in passengerTickets)
                     {
                         passengerVM.BookingClassId = ticket.BookingClassId;
                         passengerVM.BookingClassName = ticket.BookingClass?.Description ?? "Standard";
-                        passengerVM.MealChoiceId = ticket.MealChoiceId;
-                        passengerVM.SeatNumber = ticket.SeatNumber;
-                        passengerVM.FlightId = ticket.FlightId;
+
+                        // Add to tickets list
+                        confirmVM.Tickets.Add(new TicketVM
+                        {
+                            Id = ticket.TicketId,
+                            FlightId = ticket.FlightId,
+                            BookingClassId = ticket.BookingClassId,
+                            PassengerId = ticket.PassengerId,
+                            SeatNumber = ticket.SeatNumber,
+                            MealChoiceId = ticket.MealChoiceId
+                        });
                     }
 
                     confirmVM.Passengers.Add(passengerVM);
-                }
-
-                // Map tickets
-                foreach (var ticket in tickets)
-                {
-                    confirmVM.Tickets.Add(new TicketVM
-                    {
-                        Id = ticket.TicketId,
-                        FlightId = ticket.FlightId,
-                        BookingClassId = ticket.BookingClassId,
-                        PassengerId = ticket.PassengerId,
-                        SeatNumber = ticket.SeatNumber,
-                        MealChoiceId = ticket.MealChoiceId
-                    });
                 }
 
                 return View(confirmVM);
