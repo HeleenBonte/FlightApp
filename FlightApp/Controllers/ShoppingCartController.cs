@@ -32,6 +32,13 @@ namespace FlightApp.Controllers
         {
             try
             {
+                // Ensure authentication state is preserved
+                if (!User.Identity.IsAuthenticated)
+                {
+                    // If accessing directly and not authenticated, redirect to login
+                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                }
+
                 var route = await _dbContext.Routes
                     .Include(r => r.DepartureCity)
                     .Include(r => r.ArrivalCity)
@@ -114,7 +121,6 @@ namespace FlightApp.Controllers
                 SaveCartToSession(cart);
 
                 TempData["Message"] = "Route added to your basket successfully.";
-                // Instead of redirecting to Index, redirect to SelectPassengers with the route ID
                 return RedirectToAction("SelectPassengers", new { routeId = id });
             }
             catch (Exception ex)
