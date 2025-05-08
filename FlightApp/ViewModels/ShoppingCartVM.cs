@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using FlightApp.Domains.EntitiesDB;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FlightApp.ViewModels
 {

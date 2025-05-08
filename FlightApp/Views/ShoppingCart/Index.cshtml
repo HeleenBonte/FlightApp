@@ -44,50 +44,66 @@ else
             {
                 @foreach (var flight in item.Flights)
                 {
-                    <tr>
-                        <td>@item.PassengerCount</td>
-                        <td>@flight.FlightId</td>
-                        <td>@flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@flight.DepartureCity</td>
-                        <td>@flight.ArrivalCity</td>
-                        <td>@flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>
-                            @{
-                                // Calculate adjusted price based on booking class
-                                double adjustedPrice = 0;
+                    // Group passengers by booking class
+                    var passengersByClass = item.Passengers?
+                    .GroupBy(p => p.BookingClassId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
 
-                                if (item.Passengers?.Any() == true)
-                                {
-                                    // Use the first passenger's booking class for display
-                                    var firstPassenger = item.Passengers.First();
-                                    adjustedPrice = (flight.Price ?? 0) * firstPassenger.BookingClassPriceFactor * item.PassengerCount;
-                                }
-                                else
-                                {
-                                    adjustedPrice = (flight.Price ?? 0) * item.PassengerCount;
-                                }
-                            }
-                            @adjustedPrice.ToString("C")
-                        </td>
-                        <td>
-                            @if (item.Passengers?.Any() == true)
-                            {
-                                // Just show the booking class name (assuming all passengers have the same class)
-                                @item.Passengers.First().BookingClassName
-                            }
-                            else
-                            {
-                                <span>Not specified</span>
-                            }
-                        </td>
-                        <td>
-                            <form asp-action="RemoveFlightFromCart" asp-controller="ShoppingCart" method="post">
-                                <input type="hidden" name="routeId" value="@item.RouteId" />
-                                <input type="hidden" name="flightId" value="@flight.FlightId" />
-                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                            </form>
-                        </td>
-                    </tr>
+                    if (passengersByClass != null && passengersByClass.Any())
+                    {
+                        // Display one row for each booking class
+                        foreach (var classGroup in passengersByClass)
+                        {
+                            var passengers = classGroup.Value;
+                            var bookingClass = passengers.FirstOrDefault();
+                            var count = passengers.Count;
+
+                            <tr>
+                                <td>@count</td>
+                                <td>@flight.FlightId</td>
+                                <td>@flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@flight.DepartureCity</td>
+                                <td>@flight.ArrivalCity</td>
+                                <td>@flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @{
+                                        // Calculate price for this booking class
+                                        double adjustedPrice = (flight.Price ?? 0) * bookingClass.BookingClassPriceFactor * count;
+                                    }
+                                    @adjustedPrice.ToString("C")
+                                </td>
+                                <td>@bookingClass.BookingClassName</td>
+                                <td>
+                                    <form asp-action="RemoveFlightFromCart" asp-controller="ShoppingCart" method="post">
+                                        <input type="hidden" name="routeId" value="@item.RouteId" />
+                                        <input type="hidden" name="flightId" value="@flight.FlightId" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        // No passengers assigned yet, show default row
+                        <tr>
+                            <td>@item.PassengerCount</td>
+                            <td>@flight.FlightId</td>
+                            <td>@flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@flight.DepartureCity</td>
+                            <td>@flight.ArrivalCity</td>
+                            <td>@flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@((flight.Price ?? 0) * item.PassengerCount).ToString("C")</td>
+                            <td>Not specified</td>
+                            <td>
+                                <form asp-action="RemoveFlightFromCart" asp-controller="ShoppingCart" method="post">
+                                    <input type="hidden" name="routeId" value="@item.RouteId" />
+                                    <input type="hidden" name="flightId" value="@flight.FlightId" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
                 }
             }
         </tbody>
@@ -97,8 +113,11 @@ else
         <h4>Total: @Model.ComputeTotalValue().ToString("C")</h4>
     </div>
 
-    <div class="mt-3">
-        <a href="#" class="btn btn-success">Proceed to Checkout</a>
+    <div class="mt-3 d-flex justify-content-between">
         <a asp-controller="Flights" asp-action="GetRoutes" class="btn btn-secondary">Continue Shopping</a>
+        <form asp-action="ClearCart" asp-controller="ShoppingCart" method="post" class="mx-2">
+            <button type="submit" class="btn btn-danger">Remove All from Cart</button>
+        </form>
+        <a href="#" class="btn btn-success">Proceed to Checkout</a>
     </div>
 }

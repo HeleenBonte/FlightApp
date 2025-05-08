@@ -446,5 +446,25 @@ namespace FlightApp.Controllers
                 TempData["Error"] = $"Failed to save cart to session: {ex.Message}";
             }
         }
+        [HttpPost]
+        public IActionResult ClearCart()
+        {
+            try
+            {
+                // Create a new empty cart
+                var emptyCart = new ShoppingCartVM();
+
+                // Save the empty cart to session
+                SaveCartToSession(emptyCart);
+
+                TempData["Message"] = "Your cart has been cleared.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to clear cart: {ex.Message}";
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }
