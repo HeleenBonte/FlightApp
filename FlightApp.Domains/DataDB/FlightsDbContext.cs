@@ -80,6 +80,8 @@ public partial class FlightsDbContext : DbContext
                 .HasFilter("([NormalizedUserName] IS NOT NULL)");
 
             entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.FirstName).HasDefaultValue("");
+            entity.Property(e => e.LastName).HasDefaultValue("");
             entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
             entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
             entity.Property(e => e.UserName).HasMaxLength(256);
@@ -236,9 +238,14 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("Holiday");
 
             entity.Property(e => e.HolidayId).HasColumnName("HolidayID");
+            entity.Property(e => e.CityId).HasColumnName("CityID");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.City).WithMany(p => p.Holidays)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_Holiday_City");
         });
 
         modelBuilder.Entity<MealChoice>(entity =>
@@ -261,9 +268,6 @@ public partial class FlightsDbContext : DbContext
             entity.ToTable("Passenger");
 
             entity.Property(e => e.PassengerId).HasColumnName("PassengerID");
-            entity.Property(e => e.Country)
-                .HasMaxLength(50)
-                .IsUnicode(false);
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
                 .IsUnicode(false);

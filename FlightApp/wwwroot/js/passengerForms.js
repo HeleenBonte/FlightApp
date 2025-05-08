@@ -19,6 +19,7 @@ function generatePassengerForms(count, mealChoices) {
     let mealChoiceOptions = '<option value="">Select a meal option</option>';
     if (mealChoices && mealChoices.length) {
         mealChoices.forEach(meal => {
+            
             mealChoiceOptions += `<option value="${meal.MealChoiceId}">${meal.Type}</option>`;
         });
     }

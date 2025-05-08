@@ -234,7 +234,7 @@ namespace FlightApp.Controllers
                                 Email = passengerVM.Email,
                                 Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth),
                                 // Don't set Country field - you mentioned to forget this
-                                Country = string.Empty // Set to empty string as it's required in the model
+                                
                             };
 
                             // Add new passenger to database

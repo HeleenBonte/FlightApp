@@ -14,4 +14,8 @@ public partial class Holiday
     public string Name { get; set; } = null!;
 
     public double PriceFactor { get; set; }
+
+    public int? CityId { get; set; }
+
+    public virtual City? City { get; set; }
 }

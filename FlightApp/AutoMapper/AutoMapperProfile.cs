@@ -40,8 +40,7 @@ namespace FlightApp.AutoMapper
                     src => src.ArrivalCity.CityName))
                 .ForMember(dest => dest.Flights,
                 opts => opts.MapFrom(
-                    src => src.Flights))
-                ;
+                    src => src.Flights));
 
 
             //RouteFlightBridge
@@ -67,9 +66,13 @@ namespace FlightApp.AutoMapper
                     src => src.Booking.Route.ArrivalCity.CityName))
                 .ForMember(dest => dest.Passengers,
                 opts => opts.MapFrom(
-                    src => src.Booking.Passengers))
-                ;
+                    src => src.Booking.Passengers));
 
+            //MealChoice
+            CreateMap<MealChoice, MealChoiceVM>()
+                .ForMember(dest => dest.CityId,
+                    opts => opts.MapFrom(
+                        src => src.City.CityId));
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

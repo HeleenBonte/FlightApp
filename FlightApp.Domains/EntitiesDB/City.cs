@@ -13,6 +13,8 @@ public partial class City
 
     public virtual ICollection<Flight> FlightDepartureCityNavigations { get; set; } = new List<Flight>();
 
+    public virtual ICollection<Holiday> Holidays { get; set; } = new List<Holiday>();
+
     public virtual ICollection<MealChoice> MealChoices { get; set; } = new List<MealChoice>();
 
     public virtual ICollection<Route> RouteArrivalCities { get; set; } = new List<Route>();
