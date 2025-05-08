@@ -3,10 +3,10 @@
     ViewData["Title"] = "Select Passengers";
     var mealChoices = ViewBag.MealChoices as List<FlightApp.Domains.EntitiesDB.MealChoice> ?? new List<FlightApp.Domains.EntitiesDB.MealChoice>();
     var jsonSettings = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNamingPolicy = null,
-                WriteIndented = true
-            };
+    {
+        PropertyNamingPolicy = null,
+        WriteIndented = true
+    };
     var mealChoicesJson = System.Text.Json.JsonSerializer.Serialize(mealChoices, jsonSettings);
 }
 
@@ -48,7 +48,18 @@
         </div>
     </div>
 
-    <form asp-action="SavePassengers" method="post">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="alert alert-warning" id="duplicateNamesWarning" style="display: none;">
+        <strong>Note:</strong> All passenger names must be unique. Two passengers cannot have the same first and last name.
+    </div>
+
+    <form asp-action="SavePassengers" asp-controller="ShoppingCart" method="post" id="passengerForm" class="needs-validation">
         <input type="hidden" name="routeId" value="@Model.RouteId" />
 
         <div class="card mb-4">
@@ -91,18 +102,64 @@
 @section Scripts {
     <script src="~/js/passengerForms.js"></script>
     <script>
-        // Create a global variable to store meal choices
-        var mealChoicesData = @Html.Raw(mealChoicesJson);
+        // Define meal choices directly as a JavaScript object
+        var mealChoices = @Html.Raw(mealChoicesJson);
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Generate initial forms based on model
-            generatePassengerForms(@Model.PassengerCount, mealChoicesData);
+            // Pass the meal choices directly to the generate function
+            generatePassengerForms(@Model.PassengerCount, mealChoices);
 
-            // Add listener for future changes
+            // Update the passenger count dropdown handler
             const passengerCountDropdown = document.getElementById('passengerCount');
-            passengerCountDropdown.addEventListener('change', function() {
+            passengerCountDropdown.addEventListener('change', function () {
                 const selectedCount = parseInt(this.value, 10);
-                generatePassengerForms(selectedCount, mealChoicesData);
+                generatePassengerForms(selectedCount, mealChoices);
+            });
+            
+            // Form validation
+            const form = document.getElementById('passengerForm');
+            
+            form.addEventListener('submit', function(event) {
+                // Prevent form submission
+                event.preventDefault();
+                
+                // Check for duplicate names
+                if (checkDuplicateNames()) {
+                    alert('Please ensure all passenger names are unique.');
+                    return false;
+                }
+                
+                // Check all required fields
+                const allInputs = form.querySelectorAll('input[required], select[required]');
+                let isValid = true;
+                
+                allInputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+                
+                // Check meal preferences specifically
+                const mealSelects = form.querySelectorAll('select[name$=".MealChoiceId"]');
+                mealSelects.forEach(select => {
+                    if (!select.value || select.value === '') {
+                        select.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        select.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    alert('Please fill in all required fields for all passengers.');
+                    return false;
+                }
+                
+                // If everything is valid, submit the form
+                form.submit();
             });
         });
     </script>

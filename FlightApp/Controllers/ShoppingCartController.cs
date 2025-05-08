@@ -161,7 +161,6 @@ namespace FlightApp.Controllers
             }
         }
 
-
         [HttpPost]
         public IActionResult SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
         {
@@ -175,35 +174,65 @@ namespace FlightApp.Controllers
                     // Update the passenger count
                     routeItem.PassengerCount = passengerCount;
 
-                    // Update the passenger list - ensure we have the right number of passengers
-                    routeItem.Passengers = passengers.Take(passengerCount).ToList();
+                    // Take only the required number of passengers
+                    var selectedPassengers = passengers.Take(passengerCount).ToList();
+
+                    // Check for duplicate names
+                    var duplicateNames = selectedPassengers
+                        .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+
+                    if (duplicateNames.Any())
+                    {
+                        TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
 
                     // Validate that each passenger has selected a meal choice
-                    if (routeItem.Passengers.Any(p => p.MealChoiceId == 0))
+                    if (selectedPassengers.Any(p => p.MealChoiceId == 0))
                     {
                         TempData["Error"] = "Each passenger must select a meal preference.";
                         return RedirectToAction("SelectPassengers", new { routeId = routeId });
                     }
+
+                    // Check if we have all required fields
+                    if (selectedPassengers.Any(p =>
+                        string.IsNullOrEmpty(p.FirstName) ||
+                        string.IsNullOrEmpty(p.LastName) ||
+                        string.IsNullOrEmpty(p.Email) ||
+                        p.DateOfBirth == default))
+                    {
+                        TempData["Error"] = "Please provide all required information for each passenger.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
+
+                    // Update the passenger list
+                    routeItem.Passengers = selectedPassengers;
 
                     // Recalculate the total price based on the number of passengers and all flights in the route
                     routeItem.TotalPrice = routeItem.Flights.Sum(f => f.Price ?? 0) * passengerCount;
 
                     SaveCartToSession(cart);
                     TempData["Message"] = "Passenger information saved successfully.";
+
+                    // Explicitly redirect to the Index action
+                    return RedirectToAction("Index", "ShoppingCart");
                 }
                 else
                 {
                     TempData["Error"] = "Route not found in your basket.";
+                    return RedirectToAction("Index", "ShoppingCart");
                 }
-
-                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"An error occurred: {ex.Message}";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "ShoppingCart");
             }
         }
+
 
         [HttpPost]
         public IActionResult IncreasePassengerCount(int routeId)
