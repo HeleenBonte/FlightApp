@@ -65,12 +65,12 @@
             <h2>Payment Information</h2>
         </div>
         <div class="card-body">
-            <form asp-action="ProcessPayment" method="post">
-                <input type="hidden" asp-for="BookingId" />
-                <input type="hidden" asp-for="RouteId" />
-                <input type="hidden" asp-for="UserId" />
+            <form asp-action="ProcessPayment" asp-controller="ShoppingCart" method="post">
+                <input type="hidden" name="BookingId" value="0" />
+                <input type="hidden" name="RouteId" value="@Model.RouteId" />
+                <input type="hidden" name="UserId" value="@Model.UserId" />
 
-                <!-- Credit card details (for demo only, in production use a secure payment provider) -->
+                <!-- Credit card details (for demo only) -->
                 <div class="row mb-3">
                     <div class="col">
                         <label class="form-label">Card Number</label>

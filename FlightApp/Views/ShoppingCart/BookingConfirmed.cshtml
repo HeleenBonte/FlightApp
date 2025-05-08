@@ -1,98 +1,121 @@
 ﻿@model FlightApp.ViewModels.ConfirmBookingVM
 @{
-    ViewData["Title"] = "Booking Confirmed";
+    ViewData["Title"] = "Booking Confirmed - Zephyrus Airlines";
 }
 
-<div class="container">
-    <div class="jumbotron bg-success text-white p-4 mb-4">
-        <h1 class="display-4">Booking Confirmed!</h1>
-        <p class="lead">Your booking has been successfully processed and confirmed.</p>
-        <hr class="my-4 bg-white">
-        <p>Booking Reference: <strong>@Model.BookingId</strong></p>
-        <p>Booking Date: <strong>@Model.BookingTime.ToString("d MMMM yyyy HH:mm")</strong></p>
-    </div>
+<!-- And replace it with this at the top of your view, just after the @{ } block -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
 
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2>Booking Details</h2>
-        </div>
-        <div class="card-body">
-            <h3>Route: @Model.DepartureCity to @Model.ArrivalCity</h3>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
 
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Passenger Name</th>
-                            <th>RouteId</th>
-                            <th>DepartureTime</th>
-                            <th>Departure City</th>
-                            <th>Arrival City</th>
-                            <th>Arrival Time</th>
-                            <th>Layover1</th>
-                            <th>Layover2</th>
-                            <th>BookingClass</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var passenger in Model.Passengers)
-                        {
-                            <tr>
-                                <td>@passenger.FirstName @passenger.LastName</td>
-                                <td>@Model.RouteId</td>
-                                <td>@(Model.DepartureTime.HasValue ? Model.DepartureTime.Value.ToString("d/MM/yyyy H:mm:ss") : "N/A")</td>
-                                <td>@Model.DepartureCity</td>
-                                <td>@Model.ArrivalCity</td>
-                                <td>@(Model.ArrivalTime.HasValue ? Model.ArrivalTime.Value.ToString("d/MM/yyyy H:mm:ss") : "N/A")</td>
-                                <td>@(string.IsNullOrEmpty(Model.Layover1) ? "-" : Model.Layover1)</td>
-                                <td>@(string.IsNullOrEmpty(Model.Layover2) ? "-" : Model.Layover2)</td>
-                                <td>@passenger.BookingClassName</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    .card-header {
+        border-bottom: none;
+    }
 
-            <div class="alert alert-info mt-3">
-                <h4>Total Paid: @Model.TotalPrice.ToString("C")</h4>
-            </div>
+    .card-footer {
+        border-top: none;
+    }
 
-            <h3 class="mt-4">Ticket Details</h3>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr class="table-primary">
-                            <th>Flight</th>
-                            <th>Passenger</th>
-                            <th>Seat Number</th>
-                            <th>Booking Class</th>
-                            <th>Meal Choice</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ticket in Model.Tickets)
-                        {
-                            var passenger = Model.Passengers.FirstOrDefault(p => p.PassengerId == ticket.PassengerId);
-                            <tr>
-                                <td>@ticket.FlightId</td>
-                                <td>@(passenger?.FirstName ?? "") @(passenger?.LastName ?? "")</td>
-                                <td>@ticket.SeatNumber</td>
-                                <td>@(passenger?.BookingClassName ?? "")</td>
-                                <td>@ticket.MealChoiceId</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    .table th {
+        background-color: #e3f2fd;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="card border-success shadow-lg">
+        <div class="card-header bg-success text-white p-4">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                </div>
+                <div>
+                    <h1 class="display-5 mb-0">Thank You for Booking with Zephyrus Airlines!</h1>
+                    <p class="lead mb-0">Your journey awaits</p>
+                </div>
             </div>
         </div>
-    </div>
+        <div class="card-body p-4">
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger mb-4">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+            <div class="alert alert-success mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Booking Details</h4>
+                        <p><strong>Booking Reference:</strong> #@Model.BookingId</p>
+                        <p><strong>Booking Date:</strong> @Model.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Flight Information</h4>
+                        <p><strong>From:</strong> @Model.DepartureCity</p>
+                        <p><strong>To:</strong> @Model.ArrivalCity</p>
+                        <p><strong>Departure:</strong> @(Model.DepartureTime?.ToString("dddd, d MMMM yyyy, HH:mm"))</p>
+                    </div>
+                </div>
+            </div>
 
-    <div class="text-center mb-5">
-        <h4>Thank you for flying with us!</h4>
-        <p>You will receive a confirmation email shortly at the email addresses provided.</p>
-        <div class="mt-4">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Return to Home</a>
-            <a asp-controller="Flights" asp-action="GetRoutes" class="btn btn-outline-primary ml-2">Book Another Flight</a>
+            <div class="mb-4">
+                <h3 class="mb-3">Your Confirmed Booking</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Passenger</th>
+                                <th>Flight</th>
+                                <th>Seat</th>
+                                <th>Class</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var passenger in Model.Passengers)
+                            {
+                                <tr>
+                                    <td>@passenger.FirstName @passenger.LastName</td>
+                                    <td>@passenger.FlightId</td>
+                                    <td>@passenger.SeatNumber</td>
+                                    <td>@passenger.BookingClassName</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="bi bi-info-circle-fill" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <h5>Important Information</h5>
+                        <ul>
+                            <li>Please arrive at the airport at least 2 hours before your scheduled departure.</li>
+                            <li>Don't forget to bring your passport or valid ID.</li>
+                            <li>Keep your booking reference number handy for check-in.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-light text-center p-4">
+            <h4 class="mb-4">Thank you for choosing Zephyrus Airlines for your journey!</h4>
+            <p>We look forward to providing you with an exceptional flying experience.</p>
+
+            <div class="mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="bi bi-house-door-fill me-2"></i>Return to Home Page
+                </a>
+            </div>
         </div>
     </div>
 </div>
