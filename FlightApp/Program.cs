@@ -82,6 +82,9 @@ builder.Services.AddTransient<IBookingHistoryService, BookingHistoryService>();
 builder.Services.AddTransient<ICreatePDF, CreatePDF>();
 builder.Services.AddTransient<IEmailSend, EmailSend>();
 
+builder.Services.AddTransient<ITicketDAO, TicketDAO>();
+builder.Services.AddTransient<ITicketService, TicketService>();
+
 
 
 builder.Services.AddAutoMapper(typeof(Program));

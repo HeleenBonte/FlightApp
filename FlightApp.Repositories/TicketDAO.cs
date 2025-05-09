@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
-    public class TicketDAO : IDAO<Ticket>
+    public class TicketDAO : ITicketDAO
     {
         private readonly FlightsDbContext dbContext;
 
@@ -74,6 +74,27 @@ namespace FlightApp.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine("error in DAO");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Ticket>> GetTicketsByBookingIdAsync(int bookingId)
+        {
+            try
+            {
+                return await dbContext.Tickets
+                    .Where(t => t.BookingId == bookingId)
+                    .Include(e => e.Passenger)
+                    .Include(f => f.BookingClass)
+                    .Include(f => f.Flight)
+                    .Include(f => f.MealChoice)
+                    .Include(f => f.Flight.DepartureCityNavigation)
+                    .Include(f => f.Flight.ArrivalCityNavigation)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error getting tickets by booking ID: " + ex.Message);
                 throw;
             }
         }

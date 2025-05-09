@@ -77,6 +77,18 @@ namespace FlightApp.AutoMapper
             //BookingClass
             CreateMap<BookingClass, BookingClassVM>();
 
+            //Tickets
+            CreateMap<Ticket, TicketVM>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.TicketId))
+                .ForMember(dest => dest.PassengerName, opt => opt.MapFrom(src => $"{src.Passenger.FirstName} {src.Passenger.LastName}"))
+                .ForMember(dest => dest.FlightDeparture, opt => opt.MapFrom(src => src.Flight.DepartureCityNavigation.CityName))
+                .ForMember(dest => dest.FlightArrival, opt => opt.MapFrom(src => src.Flight.ArrivalCityNavigation.CityName))
+                .ForMember(dest => dest.DepartureTime, opt => opt.MapFrom(src => src.Flight.DepartureTime))
+                .ForMember(dest => dest.ArrivalTime, opt => opt.MapFrom(src => src.Flight.ArrivalTime))
+                .ForMember(dest => dest.BookingClassName, opt => opt.MapFrom(src => src.BookingClass.Description))
+                .ForMember(dest => dest.MealChoiceType, opt => opt.MapFrom(src => src.MealChoice.Type));
+
+
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

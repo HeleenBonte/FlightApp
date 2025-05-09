@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace FlightApp.Services
 {
-    public class TicketService : IService<Ticket>
+    public class TicketService : ITicketService
     {
-        private readonly IDAO<Ticket> _ticketDAO;
+        private readonly ITicketDAO _ticketDAO;
 
-        public TicketService(IDAO<Ticket> ticketDAO)
+        public TicketService(ITicketDAO ticketDAO)
         {
             _ticketDAO = ticketDAO;
         }
@@ -27,5 +27,18 @@ namespace FlightApp.Services
            return await _ticketDAO.FindByIdAsync(id);
         }
         public Task UpdateAsync(Ticket entity) => throw new NotImplementedException();
+
+        public async Task<IEnumerable<Ticket>> GetTicketsByBookingIdAsync(int bookingId)
+        {
+            try
+            {
+                return await _ticketDAO.GetTicketsByBookingIdAsync(bookingId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in service: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

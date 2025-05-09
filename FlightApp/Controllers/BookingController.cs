@@ -1,4 +1,5 @@
-﻿using FlightApp.Domains.DataDB;
+﻿using AutoMapper;
+using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Mail.Interfaces;
@@ -18,20 +19,23 @@ namespace FlightApp.Controllers
         private readonly IEmailSend _emailSender;
         private readonly ICreatePDF _createPDF;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly IService<Ticket> _ticketService;
+        private readonly ITicketService _ticketService;
+        private readonly IMapper _mapper;
 
         public BookingController(
             FlightsDbContext dbContext,
-            IService<Ticket> ticketService,
+            ITicketService ticketService,
             IEmailSend emailSender,
             IWebHostEnvironment webHostEnvironment,
-            ICreatePDF createPDF)
+            ICreatePDF createPDF,
+            IMapper mapper)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
             _createPDF = createPDF;
             _webHostEnvironment = webHostEnvironment;
             _ticketService = ticketService;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -156,14 +160,15 @@ namespace FlightApp.Controllers
                         int nextSeatNumber = bookedSeatsCount + 1;
                         foreach (var passenger in routeItem.Passengers)
                         {
-                            // Create ticket
+                            // Create ticket with BookingId set
                             var ticket = new Ticket
                             {
                                 FlightId = flight.FlightId,
                                 BookingClassId = passenger.BookingClassId,
                                 PassengerId = passenger.PassengerId,
                                 SeatNumber = nextSeatNumber++,
-                                MealChoiceId = passenger.MealChoiceId
+                                MealChoiceId = passenger.MealChoiceId,
+                                BookingId = booking.BookingId  // THIS IS THE FIX - Set the BookingId
                             };
 
                             await _dbContext.Tickets.AddAsync(ticket);
@@ -306,6 +311,20 @@ namespace FlightApp.Controllers
                 // Important: Use the saved booking ID for redirection
                 return RedirectToAction("BookingConfirmed", new { id = savedBookingId });
             }
+            catch (DbUpdateException ex)
+            {
+                // Get detailed error information including inner exceptions
+                string errorMsg = ex.Message;
+                var innerEx = ex.InnerException;
+                while (innerEx != null)
+                {
+                    errorMsg += " -> " + innerEx.Message;
+                    innerEx = innerEx.InnerException;
+                }
+
+                TempData["Error"] = $"An error occurred while processing your payment: {errorMsg}";
+                return RedirectToAction("ConfirmBooking");
+            }
             catch (Exception ex)
             {
                 TempData["Error"] = $"An error occurred while processing your payment: {ex.Message}";
@@ -349,14 +368,16 @@ namespace FlightApp.Controllers
                     });
                 }
 
-                // Get all tickets related to this booking's passengers
+                // Get all tickets related specifically to this booking
                 var tickets = await _dbContext.Tickets
+                    .Include(t => t.Passenger)
                     .Include(t => t.BookingClass)
                     .Include(t => t.Flight)
                         .ThenInclude(f => f.DepartureCityNavigation)
                     .Include(t => t.Flight)
                         .ThenInclude(f => f.ArrivalCityNavigation)
-                    .Where(t => booking.Passengers.Select(p => p.PassengerId).Contains(t.PassengerId))
+                    .Include(t => t.MealChoice)
+                    .Where(t => t.BookingId == id) // Filter by BookingId instead of passengers
                     .ToListAsync();
 
                 // Store flight info for the view
@@ -389,11 +410,14 @@ namespace FlightApp.Controllers
                     DepartureTime = booking.Route?.DepartureTime,
                     ArrivalTime = booking.Route?.ArrivalTime,
                     Passengers = new List<PassengerVM>(),
-                    Tickets = new List<TicketVM>()
+                    Tickets = _mapper.Map<List<TicketVM>>(tickets) // Use AutoMapper to map the tickets
                 };
 
                 // Map passengers
-                foreach (var passenger in booking.Passengers)
+                var passengerIds = tickets.Select(t => t.PassengerId).Distinct().ToList();
+
+                // Only include passengers who have tickets in this booking
+                foreach (var passenger in booking.Passengers.Where(p => passengerIds.Contains(p.PassengerId)))
                 {
                     var passengerVM = new PassengerVM
                     {
@@ -404,24 +428,14 @@ namespace FlightApp.Controllers
                         DateOfBirth = passenger.Birthdate.ToDateTime(TimeOnly.MinValue)
                     };
 
-                    // Find passenger's tickets
+                    // Find passenger's tickets for this booking
                     var passengerTickets = tickets.Where(t => t.PassengerId == passenger.PassengerId).ToList();
-
-                    foreach (var ticket in passengerTickets)
+                    if (passengerTickets.Any())
                     {
-                        passengerVM.BookingClassId = ticket.BookingClassId;
-                        passengerVM.BookingClassName = ticket.BookingClass?.Description ?? "Standard";
-
-                        // Add to tickets list
-                        confirmVM.Tickets.Add(new TicketVM
-                        {
-                            Id = ticket.TicketId,
-                            FlightId = ticket.FlightId,
-                            BookingClassId = ticket.BookingClassId,
-                            PassengerId = ticket.PassengerId,
-                            SeatNumber = ticket.SeatNumber,
-                            MealChoiceId = ticket.MealChoiceId
-                        });
+                        // Use values from the first ticket for display purposes
+                        var firstTicket = passengerTickets.First();
+                        passengerVM.BookingClassId = firstTicket.BookingClassId;
+                        passengerVM.BookingClassName = firstTicket.BookingClass?.Description ?? "Standard";
                     }
 
                     confirmVM.Passengers.Add(passengerVM);
