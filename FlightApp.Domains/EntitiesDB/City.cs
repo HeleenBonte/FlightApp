@@ -9,6 +9,8 @@ public partial class City
 
     public string CityName { get; set; } = null!;
 
+    public int? ApiId { get; set; }
+
     public virtual ICollection<Flight> FlightArrivalCityNavigations { get; set; } = new List<Flight>();
 
     public virtual ICollection<Flight> FlightDepartureCityNavigations { get; set; } = new List<Flight>();
