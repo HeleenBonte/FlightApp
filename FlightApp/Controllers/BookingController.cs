@@ -21,14 +21,16 @@ namespace FlightApp.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ITicketService _ticketService;
         private readonly IMapper _mapper;
+        private readonly IBookingHistoryService _bookingHistoryService;
 
         public BookingController(
-            FlightsDbContext dbContext,
-            ITicketService ticketService,
-            IEmailSend emailSender,
-            IWebHostEnvironment webHostEnvironment,
-            ICreatePDF createPDF,
-            IMapper mapper)
+        FlightsDbContext dbContext,
+        ITicketService ticketService,
+        IEmailSend emailSender,
+        IWebHostEnvironment webHostEnvironment,
+        ICreatePDF createPDF,
+        IMapper mapper,
+        IBookingHistoryService bookingHistoryService)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
@@ -36,6 +38,7 @@ namespace FlightApp.Controllers
             _webHostEnvironment = webHostEnvironment;
             _ticketService = ticketService;
             _mapper = mapper;
+            _bookingHistoryService = bookingHistoryService;
         }
 
         public IActionResult Index()
@@ -77,7 +80,6 @@ namespace FlightApp.Controllers
             return View(confirmVM);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> ProcessPayment(ConfirmBookingVM model)
         {
@@ -118,7 +120,7 @@ namespace FlightApp.Controllers
                     {
                         UserId = userId,
                         BookingTime = DateTime.Now,
-                        PaymentStatus = true,
+                        PaymentStatus = true, // Payment confirmed
                         RouteId = routeItem.RouteId
                     };
 
@@ -304,6 +306,16 @@ namespace FlightApp.Controllers
                     }
                 }
 
+                // Add booking to booking history after successful payment
+                var bookingHistory = new BookingHistory
+                {
+                    UserId = userId,
+                    BookingId = savedBookingId
+                };
+
+                // Use the BookingHistoryService to add the record
+                await _bookingHistoryService.AddAsync(bookingHistory);
+
                 // Clear the cart
                 var emptyCart = new ShoppingCartVM();
                 SaveCartToSession(emptyCart);
@@ -331,8 +343,6 @@ namespace FlightApp.Controllers
                 return RedirectToAction("ConfirmBooking");
             }
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> BookingConfirmed(int id)

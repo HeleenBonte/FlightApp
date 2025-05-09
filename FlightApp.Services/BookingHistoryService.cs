@@ -16,9 +16,9 @@ namespace FlightApp.Services
         {
             _bookingHistoryDAO = bookingHistoryDAO;
         }
-        public Task AddAsync(BookingHistory entity)
+        public async Task AddAsync(BookingHistory entity)
         {
-            throw new NotImplementedException();
+            await _bookingHistoryDAO.AddAsync(entity);
         }
 
         public Task DeleteAsync(BookingHistory entity)

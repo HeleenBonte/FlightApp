@@ -34,7 +34,7 @@ namespace FlightApp.Controllers
             try
             {
                 // Ensure authentication state is preserved
-                if (!User.Identity.IsAuthenticated)
+                if (!User.Identity?.IsAuthenticated ?? false)
                 {
                     // If accessing directly and not authenticated, redirect to login
                     return RedirectToPage("/Account/Login", new { area = "Identity" });
@@ -57,6 +57,14 @@ namespace FlightApp.Controllers
                 var existingRouteItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == id);
                 if (existingRouteItem != null)
                 {
+                    // Check if passengers have been selected for this route
+                    if (existingRouteItem.Passengers == null || !existingRouteItem.Passengers.Any() ||
+                        existingRouteItem.Passengers.Count < existingRouteItem.PassengerCount)
+                    {
+                        // Redirect to select passengers if they haven't been selected yet
+                        return RedirectToAction("SelectPassengers", new { routeId = id });
+                    }
+
                     TempData["Message"] = "This route is already in your basket.";
                     return RedirectToAction("Index");
                 }
@@ -129,6 +137,7 @@ namespace FlightApp.Controllers
                 return View("Error", new ErrorViewModel { RequestId = ex.Message });
             }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> SelectPassengers(int routeId, int? passengerCount = null)
