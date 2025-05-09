@@ -29,7 +29,7 @@ namespace FlightApp.Controllers
         public async Task<IActionResult> ConfirmBooking()
         {
             
-            var ticket = await _ticketService.FindByIdAsync(1);
+            var ticket = await _ticketService.FindByIdAsync(98);
             var pdfDoc = _createPDF.CreatePDFDocumentAsync(ticket);
             await _emailSender.SendEmailAsync(ticket.Passenger.Email, "Tickets", "Here are your tickets", pdfDoc);
             //return File(pdfDoc.ToArray(), "application/pdf", "ticket.pdf");
