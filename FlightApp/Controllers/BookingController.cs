@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using FlightApp.Util.Email;
 
 namespace FlightApp.Controllers
 {
@@ -256,39 +257,12 @@ namespace FlightApp.Controllers
                                 }
                             }
 
-                            // Create simplified email message
-                            var message = new StringBuilder();
-                            message.AppendLine($"Dear {passenger.FirstName} {passenger.LastName},");
-                            message.AppendLine();
-                            message.AppendLine($"Thank you for booking with Zephyrus Airlines. Here are all your tickets for route: {routeDescription}");
-                            message.AppendLine();
-
-                            // Include flight details
-                            foreach (var ticket in fullTickets.OrderBy(t => t.Flight.DepartureTime))
-                            {
-                                message.AppendLine($"Flight: {ticket.Flight.DepartureCityNavigation.CityName} to {ticket.Flight.ArrivalCityNavigation.CityName}");
-                                message.AppendLine($"Departure: {ticket.Flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm")}");
-                                message.AppendLine($"Arrival: {ticket.Flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm")}");
-                                message.AppendLine($"Seat: {ticket.SeatNumber}");
-                                message.AppendLine($"Class: {ticket.BookingClass.Description}");
-
-                                // Improve meal description
-                                string mealDescription = ticket.MealChoice?.Type ?? "Standard Meal";
-                                if (mealDescription == "Vegetarian") mealDescription = "Vegetarian Meal";
-                                if (mealDescription == "Vegan") mealDescription = "Vegan Meal";
-                                if (mealDescription == "Gluten-free") mealDescription = "Gluten-Free Meal";
-                                if (mealDescription == "Kosher") mealDescription = "Kosher Meal";
-                                if (mealDescription == "Halal") mealDescription = "Halal Meal";
-                                if (mealDescription == "Diabetic") mealDescription = "Diabetic Meal";
-                                if (mealDescription == "Low sodium") mealDescription = "Low Sodium Meal";
-                                if (mealDescription == "Standard") mealDescription = "Standard Meal";
-
-                                message.AppendLine($"Meal: {mealDescription}");
-                                message.AppendLine();
-                            }
-
-                            message.AppendLine("Safe travels!");
-                            message.AppendLine("Zephyrus Airlines Team");
+                            // Generate email HTML using the EmailTemplateService
+                            string emailHtml = EmailTemplateService.GenerateBookingConfirmationEmail(
+                                passenger,
+                                routeDescription,
+                                fullTickets
+                            );
 
                             // Prepare list of PDF attachments
                             var attachments = new List<(string fileName, byte[] content, string contentType)>();
@@ -316,7 +290,7 @@ namespace FlightApp.Controllers
                             await _emailSender.SendEmailWithAttachmentsAsync(
                                 passenger.Email,
                                 $"Your Zephyrus Airlines Tickets - {routeDescription}",
-                                message.ToString(),
+                                emailHtml,
                                 attachments);
                         }
                     }
@@ -359,6 +333,7 @@ namespace FlightApp.Controllers
                 return RedirectToAction("ConfirmBooking");
             }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> BookingConfirmed(int id)
