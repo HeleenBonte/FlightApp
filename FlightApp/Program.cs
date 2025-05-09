@@ -9,6 +9,8 @@ using FlightApp.Repositories.Interface;
 using FlightApp.Repositories.Interfaces;
 using FlightApp.Services;
 using FlightApp.Services.Interfaces;
+using FlightApp.Util.Hotels;
+using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.Util.Mail;
 using FlightApp.Util.Mail.Interfaces;
 using FlightApp.Util.PDF;
@@ -81,6 +83,7 @@ builder.Services.AddTransient<IBookingHistoryService, BookingHistoryService>();
 
 builder.Services.AddTransient<ICreatePDF, CreatePDF>();
 builder.Services.AddTransient<IEmailSend, EmailSend>();
+builder.Services.AddTransient<IHotelService, HotelService>();
 
 
 

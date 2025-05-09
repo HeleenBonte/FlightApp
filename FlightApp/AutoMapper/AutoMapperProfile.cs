@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.EntitiesDB;
+using FlightApp.Domains.EntityAPI;
+using FlightApp.Models;
 using FlightApp.ViewModels;
 
 namespace FlightApp.AutoMapper
@@ -76,6 +78,26 @@ namespace FlightApp.AutoMapper
                 .ForMember(dest => dest.CityId,
                     opts => opts.MapFrom(
                         src => src.City.CityId));
+
+
+
+            //HotelIdVM
+            CreateMap<HotelId, HotelIDVm>()
+                .ForMember(dest => dest.Id,
+                opts => opts.MapFrom(
+                    src => src.hotel_id));
+
+            //Hotel
+            CreateMap<Hotel, HotelVM>()
+                .ForMember(dest => dest.Price,
+                opts => opts.MapFrom(
+                    src => src.composite_price_breakdown.all_inclusive_amount.value))
+                .ForMember(dest => dest.PriceString,
+                opts => opts.MapFrom(
+                    src => src.composite_price_breakdown.all_inclusive_amount.amount_rounded))
+                .ForMember(dest => dest.PhotoUrls,
+                opts => opts.MapFrom(
+                    src => src.rawData.photoUrls));
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();
