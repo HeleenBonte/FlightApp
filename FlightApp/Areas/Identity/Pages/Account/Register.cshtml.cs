@@ -97,9 +97,10 @@ namespace FlightApp.Areas.Identity.Pages.Account
 
             /// Added Birthdate
             [Required]
-            [DataType(DataType.Date)]
+            [DataType(DataType.DateTime)]
+            [MyDate(ErrorMessage = "You must be at least 18 years old to register.")]
             [Display(Name = "Date of Birth")]
-            public DateOnly DateOfBirth { get; set; }
+            public DateTime DateOfBirth { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -140,7 +141,7 @@ namespace FlightApp.Areas.Identity.Pages.Account
                     LastName = Input.LastName,
                     UserName = Input.Email,
                     Email = Input.Email,
-                    DateOfBirth = Input.DateOfBirth
+                    DateOfBirth = DateOnly.FromDateTime( Input.DateOfBirth)
 
                 };
 
@@ -203,6 +204,16 @@ namespace FlightApp.Areas.Identity.Pages.Account
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
             return (IUserEmailStore<ApplicationUser>)_userStore;
+        }
+    }
+    public class MyDateAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object value)
+        {
+            DateTime d = Convert.ToDateTime(value);
+            
+                return d <= DateTime.Now.AddYears(-18);
+            
         }
     }
 }

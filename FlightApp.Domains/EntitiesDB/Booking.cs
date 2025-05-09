@@ -19,6 +19,8 @@ public partial class Booking
 
     public virtual Route Route { get; set; } = null!;
 
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+
     public virtual AspNetUser User { get; set; } = null!;
 
     public virtual ICollection<Passenger> Passengers { get; set; } = new List<Passenger>();

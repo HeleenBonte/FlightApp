@@ -327,6 +327,7 @@ public partial class FlightsDbContext : DbContext
 
             entity.Property(e => e.TicketId).HasColumnName("TicketID");
             entity.Property(e => e.BookingClassId).HasColumnName("BookingClassID");
+            entity.Property(e => e.BookingId).HasColumnName("BookingID");
             entity.Property(e => e.FlightId).HasColumnName("FlightID");
             entity.Property(e => e.MealChoiceId).HasColumnName("MealChoiceID");
             entity.Property(e => e.PassengerId).HasColumnName("PassengerID");
@@ -335,6 +336,11 @@ public partial class FlightsDbContext : DbContext
                 .HasForeignKey(d => d.BookingClassId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Ticket_BookingClass");
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Ticket_Booking");
 
             entity.HasOne(d => d.Flight).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.FlightId)
