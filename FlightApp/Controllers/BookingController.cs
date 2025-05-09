@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
-using FlightApp.Domains.EntitiesDB;
 using FlightApp.Models;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Hotels.Interfaces;
@@ -25,21 +24,17 @@ namespace FlightApp.Controllers
         private readonly ITicketService _ticketService;
         private readonly IMapper _mapper;
         private readonly IBookingHistoryService _bookingHistoryService;
+        private readonly IHotelService _hotelService;
 
         public BookingController(
-        FlightsDbContext dbContext,
-        ITicketService ticketService,
-        IEmailSend emailSender,
-        IWebHostEnvironment webHostEnvironment,
-        ICreatePDF createPDF,
-        IMapper mapper,
-        IBookingHistoryService bookingHistoryService)
-        private readonly IService<Ticket> _ticketService;
-        private readonly IHotelService _hotelService;
-        private readonly IMapper _mapper;
-
-
-        public BookingController(IMapper mapper, IService<Ticket> ticketService, IEmailSend emailSender, IWebHostEnvironment webHostEnvironment, ICreatePDF createPDF, IHotelService hotelService)
+            FlightsDbContext dbContext,
+            ITicketService ticketService,
+            IEmailSend emailSender,
+            IWebHostEnvironment webHostEnvironment,
+            ICreatePDF createPDF,
+            IMapper mapper,
+            IBookingHistoryService bookingHistoryService,
+            IHotelService hotelService)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
@@ -48,12 +43,9 @@ namespace FlightApp.Controllers
             _ticketService = ticketService;
             _mapper = mapper;
             _bookingHistoryService = bookingHistoryService;
+            _hotelService = hotelService;
         }
 
-        public IActionResult Index()
-            _hotelService = hotelService;
-            _mapper = mapper;
-        }
         public async Task<IActionResult> Index()
         {
             

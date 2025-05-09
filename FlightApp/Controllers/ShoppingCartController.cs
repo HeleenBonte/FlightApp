@@ -95,22 +95,6 @@ namespace FlightApp.Controllers
                         var flightVM = _mapper.Map<FlightVM>(flightDetail);
                         routeCartItem.Flights.Add(flightVM);
                         routeCartItem.TotalPrice += flightDetail.Price;
-
-                        var passengers = await _dbContext.Passengers
-                            .Where(p => p.Tickets.Any(t => t.FlightId == flight.FlightId))
-                            .ToListAsync();
-
-                        foreach (var passenger in passengers)
-                        {
-                            routeCartItem.Passengers.Add(new PassengerVM
-                            {
-                                FirstName = passenger.FirstName,
-                                LastName = passenger.LastName,
-                                Email = passenger.Email,
-                                DateOfBirth = passenger.Birthdate.ToDateTime(TimeOnly.MinValue),
-                                FlightId = flight.FlightId
-                            });
-                        }
                     }
                 }
 
@@ -137,6 +121,7 @@ namespace FlightApp.Controllers
                 return View("Error", new ErrorViewModel { RequestId = ex.Message });
             }
         }
+
 
 
         [HttpGet]
