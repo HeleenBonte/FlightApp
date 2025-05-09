@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
+using FlightApp.Domains.EntitiesDB;
+using FlightApp.Models;
 using FlightApp.Services.Interfaces;
+using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.Util.Mail.Interfaces;
 using FlightApp.Util.PDF.Interfaces;
 using FlightApp.ViewModels;
@@ -31,6 +34,12 @@ namespace FlightApp.Controllers
         ICreatePDF createPDF,
         IMapper mapper,
         IBookingHistoryService bookingHistoryService)
+        private readonly IService<Ticket> _ticketService;
+        private readonly IHotelService _hotelService;
+        private readonly IMapper _mapper;
+
+
+        public BookingController(IMapper mapper, IService<Ticket> ticketService, IEmailSend emailSender, IWebHostEnvironment webHostEnvironment, ICreatePDF createPDF, IHotelService hotelService)
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
@@ -42,8 +51,23 @@ namespace FlightApp.Controllers
         }
 
         public IActionResult Index()
+            _hotelService = hotelService;
+            _mapper = mapper;
+        }
+        public async Task<IActionResult> Index()
         {
-            return View();
+            
+            
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync("-2601889");
+            var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
+            lstHotelIdsVm = lstHotelIdsVm.Slice(0,3);
+            List<HotelVM> hotels = new List<HotelVM>();
+            foreach(var hotelId in lstHotelIdsVm) {
+                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.Id);
+                var hotelvm = _mapper.Map<HotelVM>(hotel);
+                hotels.Add(hotelvm);
+            }
+                return View(hotels);
         }
 
         [HttpGet]
