@@ -178,125 +178,136 @@ namespace FlightApp.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
-        {
-            try
+            [HttpPost]
+            public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
             {
-                var cart = GetCartFromSession();
-                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
-
-                if (routeItem != null)
+                try
                 {
-                    // Update the passenger count
-                    routeItem.PassengerCount = passengerCount;
+                    var cart = GetCartFromSession();
+                    var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
-                    // Take only the required number of passengers
-                    var selectedPassengers = passengers.Take(passengerCount).ToList();
-
-                    // Check for duplicate names
-                    var duplicateNames = selectedPassengers
-                        .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
-                        .Where(g => g.Count() > 1)
-                        .Select(g => g.Key)
-                        .ToList();
-
-                    if (duplicateNames.Any())
+                    if (routeItem != null)
                     {
-                        TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
-                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
-                    }
+                        // Update the passenger count
+                        routeItem.PassengerCount = passengerCount;
 
-                    // Validate that each passenger has selected a meal choice and booking class
-                    if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
-                    {
-                        TempData["Error"] = "Each passenger must select a meal preference and booking class.";
-                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
-                    }
+                        // Take only the required number of passengers
+                        var selectedPassengers = passengers.Take(passengerCount).ToList();
 
-                    // Check if we have all required fields
-                    if (selectedPassengers.Any(p =>
-                        string.IsNullOrEmpty(p.FirstName) ||
-                        string.IsNullOrEmpty(p.LastName) ||
-                        string.IsNullOrEmpty(p.Email) ||
-                        p.DateOfBirth == default))
-                    {
-                        TempData["Error"] = "Please provide all required information for each passenger.";
-                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
-                    }
+                        // Check for duplicate names
+                        var duplicateNames = selectedPassengers
+                            .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
+                            .Where(g => g.Count() > 1)
+                            .Select(g => g.Key)
+                            .ToList();
 
-                    // Save passengers to database (if they don't already exist)
-                    foreach (var passengerVM in selectedPassengers)
-                    {
-                        // Get booking class information
-                        var bookingClass = await _dbContext.BookingClasses
-                            .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
-
-                        if (bookingClass != null)
+                        if (duplicateNames.Any())
                         {
-                            passengerVM.BookingClassName = bookingClass.Description;
-                            passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
+                            TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
+                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
                         }
 
-                        // Check if passenger with same name and email already exists
-                        var existingPassenger = await _dbContext.Passengers
-                            .FirstOrDefaultAsync(p =>
-                                p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
-                                p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
-                                p.Email.ToLower() == passengerVM.Email.ToLower());
-
-                        if (existingPassenger == null)
+                        // Validate that each passenger has selected a meal choice and booking class
+                        if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
                         {
-                            // Create new passenger entity
-                            var passenger = new Passenger
+                            TempData["Error"] = "Each passenger must select a meal preference and booking class.";
+                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                        }
+
+                        // Check if we have all required fields
+                        if (selectedPassengers.Any(p =>
+                            string.IsNullOrEmpty(p.FirstName) ||
+                            string.IsNullOrEmpty(p.LastName) ||
+                            string.IsNullOrEmpty(p.Email) ||
+                            p.DateOfBirth == default))
+                        {
+                            TempData["Error"] = "Please provide all required information for each passenger.";
+                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                        }
+
+                        // Save passengers to database (if they don't already exist)
+                        foreach (var passengerVM in selectedPassengers)
+                        {
+                            // Get booking class information
+                            var bookingClass = await _dbContext.BookingClasses
+                                .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
+
+                            if (bookingClass != null)
                             {
-                                FirstName = passengerVM.FirstName,
-                                LastName = passengerVM.LastName,
-                                Email = passengerVM.Email,
-                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
-                            };
+                                passengerVM.BookingClassName = bookingClass.Description;
+                                passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
+                            }
 
-                            // Add new passenger to database
-                            await _dbContext.Passengers.AddAsync(passenger);
-                            await _dbContext.SaveChangesAsync();
+                            // Check if passenger with same name and email already exists
+                            var existingPassenger = await _dbContext.Passengers
+                                .FirstOrDefaultAsync(p =>
+                                    p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
+                                    p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
+                                    p.Email.ToLower() == passengerVM.Email.ToLower());
 
-                            // Update the PassengerId in the ViewModel
-                            passengerVM.PassengerId = passenger.PassengerId;
+                            if (existingPassenger == null)
+                            {
+                                // Create new passenger entity
+                                var passenger = new Passenger
+                                {
+                                    FirstName = passengerVM.FirstName,
+                                    LastName = passengerVM.LastName,
+                                    Email = passengerVM.Email,
+                                    Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
+                                };
+
+                                // Add new passenger to database
+                                await _dbContext.Passengers.AddAsync(passenger);
+                                await _dbContext.SaveChangesAsync();
+
+                                // Update the PassengerId in the ViewModel
+                                passengerVM.PassengerId = passenger.PassengerId;
+                            }
+                            else
+                            {
+                                // Check if date of birth is different and update if needed
+                                DateOnly newBirthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth);
+                                if (existingPassenger.Birthdate != newBirthdate)
+                                {
+                                    // Update the passenger's date of birth in the database
+                                    existingPassenger.Birthdate = newBirthdate;
+                                    _dbContext.Passengers.Update(existingPassenger);
+                                    await _dbContext.SaveChangesAsync();
+                                }
+
+                                // Use the existing passenger's ID
+                                passengerVM.PassengerId = existingPassenger.PassengerId;
+                            }
                         }
-                        else
-                        {
-                            // Use the existing passenger's ID
-                            passengerVM.PassengerId = existingPassenger.PassengerId;
-                        }
+
+                        // Update the passenger list in the cart
+                        routeItem.Passengers = selectedPassengers;
+
+                        // Recalculate the total price based on booking classes
+                        routeItem.TotalPrice = routeItem.GetTotalPrice();
+
+                        SaveCartToSession(cart);
+                        TempData["Message"] = "Passenger information saved successfully.";
+
+                        // Redirect to the Index action
+                        return RedirectToAction("Index", "ShoppingCart");
                     }
-
-                    // Update the passenger list in the cart
-                    routeItem.Passengers = selectedPassengers;
-
-                    // Recalculate the total price based on booking classes
-                    routeItem.TotalPrice = routeItem.GetTotalPrice();
-
-                    SaveCartToSession(cart);
-                    TempData["Message"] = "Passenger information saved successfully.";
-
-                    // Redirect to the Index action
-                    return RedirectToAction("Index", "ShoppingCart");
+                    else
+                    {
+                        TempData["Error"] = "Route not found in your basket.";
+                        return RedirectToAction("Index", "ShoppingCart");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["Error"] = "Route not found in your basket.";
+                    TempData["Error"] = $"An error occurred: {ex.Message}";
                     return RedirectToAction("Index", "ShoppingCart");
                 }
             }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"An error occurred: {ex.Message}";
-                return RedirectToAction("Index", "ShoppingCart");
-            }
-        }
 
 
-        [HttpPost]
+
+            [HttpPost]
         public async Task<IActionResult> SelectPassengers(int routeId, int passengerCount)
         {
             try

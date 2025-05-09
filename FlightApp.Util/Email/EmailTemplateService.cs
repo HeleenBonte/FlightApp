@@ -25,19 +25,28 @@ namespace FlightApp.Util.Email
             message.AppendLine($"    <p>Dear {passenger.FirstName} {passenger.LastName},</p>");
             message.AppendLine($"    <p>Your booking has been confirmed. Below you will find a summary of your tickets. All details are also attached as PDF documents.</p>");
 
-            // Add passenger information section
+            // Add passenger information section with more details
             message.AppendLine("    <div class=\"passenger-info\">");
-            message.AppendLine("      <h3>Passenger Information</h3>");
+            message.AppendLine("      <h3 class=\"standard-text\">Passenger Information</h3>");
             message.AppendLine($"      <p><strong>Name:</strong> {passenger.FirstName} {passenger.LastName}</p>");
-            message.AppendLine($"      <p><strong>Email:</strong> {passenger.Email}</p>");
+            message.AppendLine($"      <p><strong>Date of Birth:</strong> {passenger.Birthdate.ToString("dd/MM/yyyy")}</p>");
+
+            // Get meal choice and booking class from the first ticket (as these can be different per ticket)
+            if (fullTickets.Any())
+            {
+                var firstTicket = fullTickets.First();
+                message.AppendLine($"      <p><strong>Meal Choice:</strong> {firstTicket.MealChoice?.Type ?? "Standard"}</p>");
+                message.AppendLine($"      <p><strong>Booking Class:</strong> {firstTicket.BookingClass.Description}</p>");
+            }
+
             message.AppendLine("    </div>");
 
             message.AppendLine("    <div class=\"info\">");
             message.AppendLine($"      <p><strong>Route:</strong> {routeDescription}</p>");
             message.AppendLine("    </div>");
-            message.AppendLine("    <h2>Your Flight Details</h2>");
+            message.AppendLine("    <h3 class=\"standard-text\">Your Flight Details</h3>"); // Using standard text color
 
-            // Add ticket cards for mobile
+            // Add mobile ticket cards
             message.AppendLine("    <div class=\"mobile-tickets\">");
             foreach (var ticket in fullTickets.OrderBy(t => t.Flight.DepartureTime))
             {
@@ -46,14 +55,18 @@ namespace FlightApp.Util.Email
                 string flightTo = ticket.Flight.ArrivalCityNavigation.CityName;
                 string departureTime = ticket.Flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
                 string bookingClass = ticket.BookingClass.Description;
+                string mealChoice = ticket.MealChoice?.Type ?? "Standard";
 
                 message.AppendLine("      <div class=\"ticket-card\">");
                 message.AppendLine($"        <div class=\"ticket-header\">{flightFrom} to {flightTo}</div>");
                 message.AppendLine("        <div class=\"ticket-details\">");
                 message.AppendLine($"          <p><strong>Passenger:</strong> {passengerName}</p>");
                 message.AppendLine($"          <p><strong>Route:</strong> {ticket.Flight.FlightId}</p>");
+                message.AppendLine($"          <p><strong>From:</strong> {flightFrom}</p>");
+                message.AppendLine($"          <p><strong>To:</strong> {flightTo}</p>");
                 message.AppendLine($"          <p><strong>Departure:</strong> {departureTime}</p>");
-                message.AppendLine($"          <p><strong>Class:</strong> {bookingClass}</p>");
+                message.AppendLine($"          <p><strong>Booking Class:</strong> {bookingClass}</p>");
+                message.AppendLine($"          <p><strong>Meal:</strong> {mealChoice}</p>");
                 message.AppendLine("        </div>");
                 message.AppendLine("      </div>");
             }
@@ -76,7 +89,7 @@ namespace FlightApp.Util.Email
         }
 
         /// <summary>
-        /// Generates the HTML table with ticket details (for desktop view)
+        /// Generates the HTML table with ticket details
         /// </summary>
         private static string GenerateTicketTable(List<Ticket> tickets)
         {
@@ -91,6 +104,7 @@ namespace FlightApp.Util.Email
             tableHtml.AppendLine("          <th>To</th>");
             tableHtml.AppendLine("          <th>Departure</th>");
             tableHtml.AppendLine("          <th>Booking Class</th>");
+            tableHtml.AppendLine("          <th>Meal</th>");
             tableHtml.AppendLine("        </tr>");
             tableHtml.AppendLine("      </thead>");
             tableHtml.AppendLine("      <tbody>");
@@ -102,6 +116,7 @@ namespace FlightApp.Util.Email
                 string flightTo = ticket.Flight.ArrivalCityNavigation.CityName;
                 string departureTime = ticket.Flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
                 string bookingClass = ticket.BookingClass.Description;
+                string mealChoice = ticket.MealChoice?.Type ?? "Standard";
 
                 tableHtml.AppendLine("        <tr>");
                 tableHtml.AppendLine($"          <td>{passengerName}</td>");
@@ -110,6 +125,7 @@ namespace FlightApp.Util.Email
                 tableHtml.AppendLine($"          <td>{flightTo}</td>");
                 tableHtml.AppendLine($"          <td>{departureTime}</td>");
                 tableHtml.AppendLine($"          <td>{bookingClass}</td>");
+                tableHtml.AppendLine($"          <td>{mealChoice}</td>");
                 tableHtml.AppendLine("        </tr>");
             }
 
@@ -134,16 +150,18 @@ namespace FlightApp.Util.Email
     body { 
       font-family: Arial, sans-serif; 
       line-height: 1.6; 
-      color: #333; 
+      color: #e0e0e0; 
       max-width: 100%;
       width: 100% !important;
       margin: 0 auto; 
       padding: 0;
+      background-color: #2d2d2d;
     }
     .container {
       max-width: 600px;
       margin: 0 auto;
       width: 100%;
+      background-color: #2d2d2d;
     }
     .header { 
       background-color: #3a7bd5; 
@@ -153,23 +171,38 @@ namespace FlightApp.Util.Email
     }
     .content { 
       padding: 20px; 
+      color: #e0e0e0;
+      background-color: #2d2d2d;
     }
     .footer { 
-      background-color: #f4f4f4; 
+      background-color: #222222; 
       padding: 15px; 
       text-align: center; 
       font-size: 14px; 
-      color: #666; 
+      color: #a0a0a0; 
     }
     h1 { color: white; }
-    h2 { color: #2ecc71; margin-top: 20px; }
-    h3 { color: #2980b9; margin-top: 15px; }
+    h2 { color: #7ce795; margin-top: 20px; } /* Brighter green for thanks message */
+    h3 { 
+      color: #e0e0e0; 
+      margin-top: 15px; 
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .standard-text { 
+      color: #e0e0e0; 
+      font-size: 18px; 
+      font-weight: bold; 
+      margin-top: 25px; 
+      margin-bottom: 15px; 
+    }
     
     /* Table styles for desktop */
     table { 
       width: 100%; 
       border-collapse: collapse; 
       margin: 20px 0; 
+      background-color: #333333;
     }
     th { 
       background-color: #3a7bd5; 
@@ -179,7 +212,8 @@ namespace FlightApp.Util.Email
     }
     td { 
       padding: 8px; 
-      border-bottom: 1px solid #ddd; 
+      border-bottom: 1px solid #555555; 
+      color: #e0e0e0;
     }
     
     /* Mobile ticket cards */
@@ -188,11 +222,12 @@ namespace FlightApp.Util.Email
     }
     
     .ticket-card {
-      border: 1px solid #ddd;
+      border: 1px solid #555555;
       border-radius: 8px;
       margin-bottom: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       overflow: hidden;
+      background-color: #333333;
     }
     
     .ticket-header {
@@ -205,27 +240,49 @@ namespace FlightApp.Util.Email
     
     .ticket-details {
       padding: 12px;
-      background-color: #f9f9f9;
+      background-color: #333333;
+      color: #e0e0e0;
     }
     
     .ticket-details p {
       margin: 5px 0;
+      color: #e0e0e0;
     }
     
     /* Info boxes */
     .info { 
-      background-color: #f9f9f9; 
+      background-color: #333333; 
       padding: 15px; 
       border-radius: 5px; 
       margin: 15px 0; 
+      color: #e0e0e0;
+      border: 1px solid #444444;
     }
     
     .passenger-info { 
-      background-color: #e8f4fc; 
+      background-color: #303c49; 
       padding: 15px; 
       border-radius: 5px; 
       margin: 15px 0; 
-      border-left: 4px solid #3498db; 
+      border-left: 4px solid #4a79b5; 
+      color: #e0e0e0;
+    }
+    
+    /* Make all text within these sections the same color */
+    .passenger-info p, .info p, .content p, .ticket-details p {
+      color: #e0e0e0;
+    }
+    
+    /* Make sure all strong tags have the same color */
+    strong {
+      color: #80c4ff;
+      font-weight: bold;
+    }
+    
+    /* Links style */
+    a {
+      color: #61a8ff;
+      text-decoration: underline;
     }
     
     /* Responsive styles for mobile devices */
