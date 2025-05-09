@@ -118,7 +118,7 @@ namespace FlightApp.Controllers
                     {
                         UserId = userId,
                         BookingTime = DateTime.Now,
-                        PaymentStatus = true, // Payment confirmed
+                        PaymentStatus = true,
                         RouteId = routeItem.RouteId
                     };
 
@@ -168,7 +168,7 @@ namespace FlightApp.Controllers
                                 PassengerId = passenger.PassengerId,
                                 SeatNumber = nextSeatNumber++,
                                 MealChoiceId = passenger.MealChoiceId,
-                                BookingId = booking.BookingId  // THIS IS THE FIX - Set the BookingId
+                                BookingId = booking.BookingId
                             };
 
                             await _dbContext.Tickets.AddAsync(ticket);
@@ -377,7 +377,7 @@ namespace FlightApp.Controllers
                     .Include(t => t.Flight)
                         .ThenInclude(f => f.ArrivalCityNavigation)
                     .Include(t => t.MealChoice)
-                    .Where(t => t.BookingId == id) // Filter by BookingId instead of passengers
+                    .Where(t => t.BookingId == id)
                     .ToListAsync();
 
                 // Store flight info for the view
