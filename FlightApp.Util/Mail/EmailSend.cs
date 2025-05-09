@@ -22,7 +22,7 @@ namespace FlightApp.Util.Mail
         {
             var mail = new MailMessage();
             mail.To.Add(new MailAddress(email));
-            mail.From = new MailAddress("bonteheleen@gmail.com"); // hier komt jullie Gmail-adres
+            mail.From = new MailAddress("ZephyrusAirlines@gmail.com"); // hier komt jullie Gmail-adres
             mail.Subject = subject;
             mail.Body = message;
             mail.IsBodyHtml = true;
@@ -47,7 +47,7 @@ namespace FlightApp.Util.Mail
         {
             var mail = new MailMessage(); // aanmaken van een mail-object
             mail.To.Add(new MailAddress(email));
-            mail.From = new MailAddress("bonteheleen@gmail.com"); // hier komt jullie Gmail-adres
+            mail.From = new MailAddress("ZephyrusAirlines@gmail.com"); // hier komt jullie Gmail-adres
             mail.Subject = subject;
             mail.Body = message;
             mail.IsBodyHtml = true;
@@ -74,10 +74,10 @@ namespace FlightApp.Util.Mail
         {
             var mailMessage = new MailMessage
             {
-                From = new MailAddress("bonteheleen@gmail.com"), // Use the same email as in other methods
+                From = new MailAddress("ZephyrusAirlines@gmail.com"),
                 Subject = subject,
                 Body = message,
-                IsBodyHtml = true // Keeping consistent with other methods
+                IsBodyHtml = true
             };
 
             mailMessage.To.Add(new MailAddress(email));
