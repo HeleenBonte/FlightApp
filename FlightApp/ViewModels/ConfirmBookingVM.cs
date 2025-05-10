@@ -10,7 +10,7 @@ namespace FlightApp.ViewModels
         public string? UserId { get; set; }
         public DateTime BookingTime { get; set; } = DateTime.Now;
         public bool PaymentStatus { get; set; }
-        public int RouteId { get; set; }
+        public int? RouteId { get; set; }
 
         // Navigation properties
         public List<TicketVM> Tickets { get; set; } = new List<TicketVM>();
@@ -34,7 +34,7 @@ namespace FlightApp.ViewModels
     // New class to support multiple routes
     public class RouteViewModel
     {
-        public int RouteId { get; set; }
+        public int? RouteId { get; set; }
         public string? DepartureCity { get; set; }
         public string? ArrivalCity { get; set; }
         public DateTime? DepartureTime { get; set; }

@@ -1,9 +1,9 @@
-﻿@model FlightApp.ViewModels.ConfirmBookingVM
+﻿@model FlightApp.ViewModels.ConfirmBookingHotelListVM
 @{
     ViewData["Title"] = "Booking Confirmed - Zephyrus Airlines";
     // Extract related booking IDs from URL query string
     var relatedIdsString = Context.Request.Query["relatedIds"].ToString();
-    var allBookingIds = new List<int> { Model.BookingId };
+    var allBookingIds = new List<int> { Model.ConfirmBooking.BookingId };
 
     if (!string.IsNullOrEmpty(relatedIdsString))
     {
@@ -75,13 +75,13 @@
                     {
                         <div class="col-12">
                             <h4>Multiple Routes Booking Details</h4>
-                            <p><strong>Booking Date:</strong> @Model.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
-                            <p class="mb-2">Your booking includes @Model.Routes.Count routes with separate booking references:</p>
+                            <p><strong>Booking Date:</strong> @Model.ConfirmBooking.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
+                            <p class="mb-2">Your booking includes @Model.ConfirmBooking.Routes.Count routes with separate booking references:</p>
                             <ul class="list-unstyled">
-                                @for (int i = 0; i < Math.Min(allBookingIds.Count, Model.Routes.Count); i++)
+                                @for (int i = 0; i < Math.Min(allBookingIds.Count, Model.ConfirmBooking.Routes.Count); i++)
                                 {
                                     var bookingId = allBookingIds[i];
-                                    var route = Model.Routes[i];
+                                    var route = Model.ConfirmBooking.Routes[i];
                                     <li class="mb-2">
                                         <span class="badge bg-success booking-id-badge">#@bookingId</span>
                                         <span>@route.DepartureCity to @route.ArrivalCity</span>
@@ -94,25 +94,25 @@
                     {
                         <div class="col-12">
                             <h4>Booking Details</h4>
-                            <p><strong>Booking Reference:</strong> #@Model.BookingId</p>
-                            @if (Model.Routes != null && Model.Routes.Count > 0)
+                            <p><strong>Booking Reference:</strong> #@Model.ConfirmBooking.BookingId</p>
+                            @if (Model.ConfirmBooking.Routes != null && Model.ConfirmBooking.Routes.Count > 0)
                             {
-                                <p><strong>Route:</strong> @Model.Routes[0].DepartureCity to @Model.Routes[0].ArrivalCity</p>
+                                <p><strong>Route:</strong> @Model.ConfirmBooking.Routes[0].DepartureCity to @Model.ConfirmBooking.Routes[0].ArrivalCity</p>
                             }
-                            <p><strong>Booking Date:</strong> @Model.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
+                            <p><strong>Booking Date:</strong> @Model.ConfirmBooking.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
                         </div>
                     }
                 </div>
             </div>
 
             <h3 class="mb-3">Your Routes</h3>
-            @if (Model.Routes != null && Model.Routes.Count > 0)
+            @if (Model.ConfirmBooking.Routes != null && Model.ConfirmBooking.Routes.Count > 0)
             {
                 <div class="row">
-                    @for (int i = 0; i < Math.Min(allBookingIds.Count, Model.Routes.Count); i++)
+                    @for (int i = 0; i < Math.Min(allBookingIds.Count, Model.ConfirmBooking.Routes.Count); i++)
                     {
                         var bookingId = allBookingIds[i];
-                        var route = Model.Routes[i];
+                        var route = Model.ConfirmBooking.Routes[i];
                         <div class="col-md-12 mb-3">
                             <div class="card route-card">
                                 <div class="card-body">
@@ -173,9 +173,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var ticket in Model.Tickets)
+                            @foreach (var ticket in Model.ConfirmBooking.Tickets)
                             {
-                                var passenger = Model.Passengers.FirstOrDefault(p => p.PassengerId == ticket.PassengerId);
+                                var passenger = Model.ConfirmBooking.Passengers.FirstOrDefault(p => p.PassengerId == ticket.PassengerId);
 
                                 <tr>
                                     <td>@passenger?.FirstName @passenger?.LastName</td>
@@ -227,3 +227,14 @@
         </div>
     </div>
 </div>
+@if (Model.Hotels.Count() != 0)
+{
+    <div>
+        @foreach (var item in Model.Hotels)
+        {
+            <div class="hotel-tile">
+                @await Html.PartialAsync("DisplayTemplates/_HotelTile", item)
+            </div>
+        }
+    </div>
+}

@@ -389,7 +389,7 @@ namespace FlightApp.Controllers
             {
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
-
+            List<HotelVM> hotels = new List<HotelVM>();
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -432,6 +432,7 @@ namespace FlightApp.Controllers
                     // Get the layover information from tickets
                     var layovers = await GetLayoversForBooking(booking);
 
+                    hotels = await GetHotelVMList(booking.Route?.ArrivalCity?.ApiId.ToString());
                     // Create a route view model
                     var routeViewModel = new RouteViewModel
                     {
@@ -548,12 +549,12 @@ namespace FlightApp.Controllers
                 ConfirmBookingHotelListVM confirmBookingHotelListVM = new ConfirmBookingHotelListVM
                 {
                     ConfirmBooking = confirmVM,
-                    Hotels = await GetHotelVMList(booking.Route?.ArrivalCity?.ApiId.ToString())
+                    Hotels = hotels
                 };
 
 
 
-                return View(confirmVM);
+                return View(confirmBookingHotelListVM);
             }
             catch (Exception ex)
             {
