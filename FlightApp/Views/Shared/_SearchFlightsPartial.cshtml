@@ -1,10 +1,10 @@
-﻿@model List<FlightApp.ViewModels.FlightVM>
+﻿@model FlightApp.ViewModels.FlightListHotelListVM
 
 <div class="results-container mt-3">
-    @if (Model != null && Model.Any())
+    @if (Model.flights != null && Model.flights.Any())
     {
         <div class="search-results">
-            @foreach (var flight in Model)
+            @foreach (var flight in Model.flights)
             {
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -52,4 +52,17 @@
             No flights found matching your criteria.
         </div>
     }
+    @if (Model.hotels.Count() != 0)
+    {
+        <div>
+            @foreach (var item in Model.hotels)
+            {
+                <div class="hotel-tile">
+                    @await Html.PartialAsync("DisplayTemplates/_HotelTile", item)
+                </div>
+            }
+        </div>
+    }
+
+
 </div>

@@ -60,7 +60,17 @@ namespace FlightApp.Controllers
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
 
-                return PartialView("_SearchFlightsPartial", listVM);
+                FlightListHotelListVM flightListHotelListVM = new FlightListHotelListVM();
+                flightListHotelListVM.flights = listVM;
+                flightListHotelListVM.hotels = new List<HotelVM>();
+
+                if (listVM != null)
+                {
+                    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString());
+                    flightListHotelListVM.hotels = hotels;
+                }
+
+                return PartialView("_SearchFlightsPartial", flightListHotelListVM);
             }
             catch (Exception ex)
             {

@@ -107,7 +107,7 @@
                     {
                         <div class="col-12">
                             <h4>Booking Details</h4>
-                            <p><strong>Booking Reference:</strong> #@Model.BookingId</p>
+                            <p><strong>Booking Reference:</strong> #@Model.ConfirmBooking.BookingId</p>
                             @if (Model.ConfirmBooking.Routes.Count > 0)
                             {
                                 <p><strong>Route:</strong> @Model.ConfirmBooking.Routes[0].DepartureCity to @Model.ConfirmBooking.Routes[0].ArrivalCity</p>
@@ -116,7 +116,7 @@
                             {
                                 <p><strong>Flight:</strong> @Model.ConfirmBooking.DirectFlights[0].DepartureCity to @Model.ConfirmBooking.DirectFlights[0].ArrivalCity</p>
                             }
-                            <p><strong>Booking Date:</strong> @Model.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
+                            <p><strong>Booking Date:</strong> @Model.ConfirmBooking.BookingTime.ToString("d MMMM yyyy, HH:mm")</p>
                         </div>
                     }
                 </div>
@@ -197,11 +197,11 @@
                 </div>
             }
 
-            @if (Model.DirectFlights.Count > 0)
+            @if (Model.ConfirmBooking.DirectFlights.Count > 0)
             {
                 <h3 class="mb-3">Your Direct Flights</h3>
                 <div class="row">
-                    @foreach (var flight in Model.DirectFlights)
+                    @foreach (var flight in Model.ConfirmBooking.DirectFlights)
                     {
                         <div class="col-md-12 mb-3">
                             <div class="card flight-card">
