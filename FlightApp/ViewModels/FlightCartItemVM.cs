@@ -1,5 +1,4 @@
-﻿// FlightApp/ViewModels/FlightCartItemVM.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +15,7 @@ namespace FlightApp.ViewModels
         public List<PassengerVM> Passengers { get; set; } = new List<PassengerVM>();
         public int PassengerCount { get; set; } = 1; // Default to 1 passenger
         public double TotalPrice { get; set; }
+        public string? Notes { get; set; } // Added for holiday pricing info
 
         public double GetTotalPrice()
         {
@@ -29,7 +29,8 @@ namespace FlightApp.ViewModels
             double total = 0;
             foreach (var passenger in Passengers)
             {
-                total += Price * passenger.BookingClassPriceFactor;
+                double basePrice = Price;
+                total += basePrice * passenger.BookingClassPriceFactor;
             }
 
             return total;

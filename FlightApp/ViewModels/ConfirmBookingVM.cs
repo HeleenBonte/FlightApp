@@ -63,9 +63,10 @@ namespace FlightApp.ViewModels
         public DateTime? DepartureTime { get; set; }
         public DateTime? ArrivalTime { get; set; }
         public double Price { get; set; }
-        public int BookingId { get; set; } // Associated booking ID
+        public int BookingId { get; set; }
         public List<PassengerVM> Passengers { get; set; } = new List<PassengerVM>();
         public List<TicketVM> Tickets { get; set; } = new List<TicketVM>();
+        public string? Notes { get; set; }
     }
 
     public class FlightViewModel
@@ -76,5 +77,6 @@ namespace FlightApp.ViewModels
         public DateTime? DepartureTime { get; set; }
         public DateTime? ArrivalTime { get; set; }
         public double Price { get; set; }
+        public string? Notes { get; set; }
     }
 }

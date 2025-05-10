@@ -27,6 +27,7 @@ namespace FlightApp.Controllers
         private readonly IMapper _mapper;
         private readonly IBookingHistoryService _bookingHistoryService;
         private readonly IHotelService _hotelService;
+        private readonly IHolidayPriceService _holidayPriceService;
 
         public BookingController(
             FlightsDbContext dbContext,
@@ -36,7 +37,8 @@ namespace FlightApp.Controllers
             ICreatePDF createPDF,
             IMapper mapper,
             IBookingHistoryService bookingHistoryService,
-            IHotelService hotelService)
+            IHotelService hotelService,
+            IHolidayPriceService holidayPriceService) // Add this parameter
         {
             _dbContext = dbContext;
             _emailSender = emailSender;
@@ -46,6 +48,7 @@ namespace FlightApp.Controllers
             _mapper = mapper;
             _bookingHistoryService = bookingHistoryService;
             _hotelService = hotelService;
+            _holidayPriceService = holidayPriceService; // Initialize this field
         }
 
 
