@@ -8,7 +8,7 @@
         public int PassengerId { get; set; }
         public int SeatNumber { get; set; }
         public int MealChoiceId { get; set; }
-        public int BookingId { get; set; } // Added property for BookingId
+        public int BookingId { get; set; }
         public string? PassengerName { get; set; }
         public string? FlightDeparture { get; set; }
         public string? FlightArrival { get; set; }
