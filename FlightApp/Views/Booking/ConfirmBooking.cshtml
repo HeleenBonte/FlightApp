@@ -39,50 +39,92 @@
                             </div>
                             <div class="card-body">
                                 <h3 class="text-primary">Total Price: @Model.TotalPrice.ToString("C")</h3>
-                                <p class="small text-muted">Includes all taxes and fees for all routes</p>
+                                <p class="small text-muted">Includes all taxes and fees for all routes and flights</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Routes Section - Works for both single and multiple routes -->
-                <h4 class="mt-4 mb-3">Your @(Model.Routes.Count > 1 ? "Routes" : "Route")</h4>
-
-                @foreach (var route in Model.Routes)
+                @if (Model.Routes.Any())
                 {
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5>Route: @route.DepartureCity to @route.ArrivalCity</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Route ID:</strong> @route.RouteId</p>
-                                    <p><strong>From:</strong> @route.DepartureCity</p>
-                                    <p><strong>To:</strong> @route.ArrivalCity</p>
-                                    <p><strong>Departure:</strong> @(route.DepartureTime?.ToString("dd/MM/yyyy HH:mm"))</p>
-                                    <p><strong>Arrival:</strong> @(route.ArrivalTime?.ToString("dd/MM/yyyy HH:mm"))</p>
-                                    @if (!string.IsNullOrEmpty(route.Layover1))
-                                    {
-                                        <p><strong>Connection:</strong> @route.Layover1</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(route.Layover2))
-                                    {
-                                        <p><strong>Connection 2:</strong> @route.Layover2</p>
-                                    }
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Passengers:</strong></p>
-                                    <ul>
-                                        @foreach (var passenger in route.Passengers)
+                    <h4 class="mt-4 mb-3">Your @(Model.Routes.Count > 1 ? "Routes" : "Route")</h4>
+
+                    @foreach (var route in Model.Routes)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5>Route: @route.DepartureCity to @route.ArrivalCity</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Route ID:</strong> @route.RouteId</p>
+                                        <p><strong>From:</strong> @route.DepartureCity</p>
+                                        <p><strong>To:</strong> @route.ArrivalCity</p>
+                                        <p><strong>Departure:</strong> @(route.DepartureTime?.ToString("dd/MM/yyyy HH:mm"))</p>
+                                        <p><strong>Arrival:</strong> @(route.ArrivalTime?.ToString("dd/MM/yyyy HH:mm"))</p>
+                                        @if (!string.IsNullOrEmpty(route.Layover1))
                                         {
-                                            <li>@passenger.FirstName @passenger.LastName - @passenger.BookingClassName</li>
+                                            <p><strong>Connection:</strong> @route.Layover1</p>
                                         }
-                                    </ul>
+                                        @if (!string.IsNullOrEmpty(route.Layover2))
+                                        {
+                                            <p><strong>Connection 2:</strong> @route.Layover2</p>
+                                        }
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Passengers:</strong></p>
+                                        <ul>
+                                            @foreach (var passenger in route.Passengers)
+                                            {
+                                                <li>@passenger.FirstName @passenger.LastName - @passenger.BookingClassName</li>
+                                            }
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
+                }
+
+                <!-- Direct Flights Section -->
+                @if (Model.Cart.FlightItems.Any())
+                {
+                    <h4 class="mt-4 mb-3">Your Direct @(Model.Cart.FlightItems.Count > 1 ? "Flights" : "Flight")</h4>
+
+                    @foreach (var flight in Model.Cart.FlightItems)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5>Flight: @flight.DepartureCity to @flight.ArrivalCity</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Flight ID:</strong> @flight.FlightId</p>
+                                        <p><strong>From:</strong> @flight.DepartureCity</p>
+                                        <p><strong>To:</strong> @flight.ArrivalCity</p>
+                                        <p><strong>Departure:</strong> @(flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm"))</p>
+                                        <p><strong>Arrival:</strong> @(flight.ArrivalTime?.ToString("dd/MM/yyyy HH:mm"))</p>
+                                        <p><strong>Price per person:</strong> @flight.Price.ToString("C")</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Passengers:</strong></p>
+                                        <ul>
+                                            @foreach (var passenger in flight.Passengers)
+                                            {
+                                                <li>
+                                                    @passenger.FirstName @passenger.LastName - @passenger.BookingClassName
+                                                    (@(passenger.BookingClassPriceFactor.ToString("P0")) of base price)
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 }
 
                 <div class="table-responsive mt-4">
@@ -91,7 +133,7 @@
                         <thead class="table-primary">
                             <tr>
                                 <th>Passenger</th>
-                                <th>Route</th>
+                                <th>Itinerary Type</th>
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Departure</th>
@@ -105,10 +147,25 @@
                                 {
                                     <tr>
                                         <td>@passenger.FirstName @passenger.LastName</td>
-                                        <td>@route.RouteId</td>
+                                        <td>Route #@route.RouteId</td>
                                         <td>@route.DepartureCity</td>
                                         <td>@route.ArrivalCity</td>
                                         <td>@(route.DepartureTime?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                        <td>@passenger.BookingClassName</td>
+                                    </tr>
+                                }
+                            }
+
+                            @foreach (var flight in Model.Cart.FlightItems)
+                            {
+                                @foreach (var passenger in flight.Passengers)
+                                {
+                                    <tr>
+                                        <td>@passenger.FirstName @passenger.LastName</td>
+                                        <td>Flight #@flight.FlightId</td>
+                                        <td>@flight.DepartureCity</td>
+                                        <td>@flight.ArrivalCity</td>
+                                        <td>@(flight.DepartureTime?.ToString("dd/MM/yyyy HH:mm"))</td>
                                         <td>@passenger.BookingClassName</td>
                                     </tr>
                                 }
@@ -128,6 +185,12 @@
                         @for (int i = 0; i < Model.Routes.Count; i++)
                         {
                             <input type="hidden" name="Routes[@i].RouteId" value="@Model.Routes[i].RouteId" />
+                        }
+
+                        <!-- Hidden fields for each flight -->
+                        @for (int i = 0; i < Model.Cart.FlightItems.Count; i++)
+                        {
+                            <input type="hidden" name="Flights[@i].FlightId" value="@Model.Cart.FlightItems[i].FlightId" />
                         }
 
                         <input type="hidden" name="UserId" value="@Model.UserId" />

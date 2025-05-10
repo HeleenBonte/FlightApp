@@ -168,10 +168,6 @@ namespace FlightApp.Controllers
             return RedirectToAction("Index", "ShoppingCart");
         }
 
-
-
-
-
         public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
         {
 
@@ -188,6 +184,11 @@ namespace FlightApp.Controllers
                 hotels.Add(hotelvm);
             }
             return hotels;
+        }
+        [HttpGet]
+        public IActionResult AddToCart(int id)
+        {
+            return RedirectToAction("AddFlightToCart", "ShoppingCart", new { id });
         }
     }
 }

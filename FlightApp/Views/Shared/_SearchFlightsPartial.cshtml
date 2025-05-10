@@ -1,59 +1,55 @@
-﻿@model IEnumerable<FlightApp.ViewModels.FlightVM>
+﻿@model List<FlightApp.ViewModels.FlightVM>
 
-    @if(Model.Count() != 0){
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FlightId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DepartureCity)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ArrivalCity)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DepartureTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ArrivalTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FlightId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartureCity)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ArrivalCity)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartureTime)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ArrivalTime)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-            </tr>
-        }
-    </tbody>
-    </table>
-}
-else
-{
-    <p>We could not find any direct flights between these cities. We may have routes, find them <a asp-area="" asp-controller="Flights" asp-action="Index">HERE</a>
-         or create your own route by selecting different flights.</p>
-
-}
+<div class="results-container mt-3">
+    @if (Model != null && Model.Any())
+    {
+        <div class="search-results">
+            @foreach (var flight in Model)
+            {
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Flight #@flight.FlightId</h5>
+                        <span class="badge bg-primary">€@flight.Price</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-0"><strong>@flight.DepartureCity</strong></p>
+                                        <p class="text-muted">@flight.DepartureTime?.ToString("HH:mm")</p>
+                                    </div>
+                                    <div class="flex-grow-1 text-center">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0"><strong>@flight.ArrivalCity</strong></p>
+                                        <p class="text-muted">@flight.ArrivalTime?.ToString("HH:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <p class="mb-0">
+                                        <strong>Date:</strong>
+                                        @flight.DepartureTime?.ToString("dd MMM yyyy")
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-center justify-content-end">
+                                <a asp-controller="Flights" asp-action="AddToCart" asp-route-id="@flight.FlightId"
+                                   class="btn btn-success">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            No flights found matching your criteria.
+        </div>
+    }
+</div>
