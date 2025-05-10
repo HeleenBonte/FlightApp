@@ -12,17 +12,17 @@ namespace FlightApp.Repositories
 {
     public class BookingHistoryDAO : IBookingHistoryDAO
     {
-        private readonly FlightsDbContext dbContext;
+        private readonly FlightsDbContext _dbContext;
 
-        public BookingHistoryDAO(FlightsDbContext _dbContext)
+        public BookingHistoryDAO(FlightsDbContext dbContext)
         {
-            dbContext = _dbContext;
+            _dbContext = dbContext; // Fixed: parameter to field
         }
 
         public async Task AddAsync(BookingHistory entity)
         {
-            await dbContext.BookingHistories.AddAsync(entity);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.BookingHistories.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
         }
 
         public Task DeleteAsync(BookingHistory entity)
@@ -30,10 +30,9 @@ namespace FlightApp.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<BookingHistory?> FindByIdAsync(int Id)
+        public Task<BookingHistory?> FindByIdAsync(int Id)
         {
             throw new NotImplementedException();
-
         }
 
         public Task<IEnumerable<BookingHistory>?> GetAllAsync()
@@ -41,14 +40,24 @@ namespace FlightApp.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<BookingHistory>?> GetAllByUserIdAsync(string userId)
+        public async Task<IEnumerable<BookingHistory>> GetAllByUserIdAsync(string userId)
         {
-            return await dbContext.BookingHistories
-                .Include(b => b.Booking)
-                .Include(b => b.Booking.Route)
-                .Include(b => b.Booking.Route.ArrivalCity)
-                .Include(b => b.Booking.Route.DepartureCity)
-                .Where(b => b.UserId == userId)
+            return await _dbContext.BookingHistories
+                .Where(bh => bh.UserId == userId)
+                .Include(bh => bh.Booking)
+                    .ThenInclude(b => b.Route)
+                        .ThenInclude(r => r.DepartureCity)
+                .Include(bh => bh.Booking)
+                    .ThenInclude(b => b.Route)
+                        .ThenInclude(r => r.ArrivalCity)
+                .Include(bh => bh.Booking)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.DepartureCityNavigation)
+                .Include(bh => bh.Booking)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.ArrivalCityNavigation)
+                .Include(bh => bh.Booking.Passengers)
+                .OrderByDescending(bh => bh.Booking.BookingTime)
                 .ToListAsync();
         }
 

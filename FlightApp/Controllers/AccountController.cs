@@ -28,26 +28,55 @@ namespace FlightApp.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId != null)
             {
-                try { 
-                // User is logged in, redirect to the desired page
-                var history = await _bookingHistoryDAO.GetAllByUserIdAsync(userId);
-                List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
+                try
+                {
+                    // User is logged in, fetch booking history
+                    var history = await _bookingHistoryDAO.GetAllByUserIdAsync(userId);
+                    List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
 
-                var hotels = await GetHotelVMList(bookingHistoryVMs.First().ArrivalCityData.ApiId.ToString());
-                    BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM();
-                    bookingHistoryHotelListVM.BookingHistory = bookingHistoryVMs;
-                    bookingHistoryHotelListVM.Hotels = hotels;
+                    // Handle case with no bookings
+                    if (!bookingHistoryVMs.Any())
+                    {
+                        BookingHistoryHotelListVM emptyModel = new BookingHistoryHotelListVM
+                        {
+                            BookingHistory = new List<BookingHistoryVM>(),
+                            Hotels = new List<HotelVM>()
+                        };
+                        return View(emptyModel);
+                    }
+
+                    // Get hotel recommendations for the first booking's arrival city
+                    var firstBookingWithCity = bookingHistoryVMs.FirstOrDefault(b => b.ArrivalCityData?.ApiId != null);
+                    List<HotelVM> hotels = new List<HotelVM>();
+
+                    if (firstBookingWithCity != null)
+                    {
+                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString());
+                    }
+
+                    BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM
+                    {
+                        BookingHistory = bookingHistoryVMs,
+                        Hotels = hotels
+                    };
 
                     return View(bookingHistoryHotelListVM);
-            }
-                catch(Exception ex) {
-                    ViewBag.ErrorMessage = "Er is een probleem opgetreden bij het ophalen van de lijst";
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = "An error occurred while retrieving your booking history.";
                     return View("Error");
                 }
             }
-            return View();
-            
+
+            // If user is not logged in, return empty view
+            return View(new BookingHistoryHotelListVM
+            {
+                BookingHistory = new List<BookingHistoryVM>(),
+                Hotels = new List<HotelVM>()
+            });
         }
+
         public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
         {
             var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
