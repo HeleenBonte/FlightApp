@@ -1,4 +1,6 @@
-﻿namespace FlightApp.ViewModels
+﻿using FlightApp.Domains.EntitiesDB;
+
+namespace FlightApp.ViewModels
 {
     public class BookingHistoryVM
     {
@@ -8,5 +10,6 @@
         public IEnumerable<PassengerVM>? Passengers { get; set; } = new List<PassengerVM>();
         public string DepartureCity { get; set; } 
         public string ArrivalCity { get; set; }
+        public City ArrivalCityData { get; set; }
     }
 }
