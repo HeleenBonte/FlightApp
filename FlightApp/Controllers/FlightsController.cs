@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.EntitiesDB;
+using FlightApp.Services;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.ViewModels;
@@ -15,17 +16,23 @@ namespace FlightApp.Controllers
         private IService<City> cityService;
         private IRouteService routeService;
         private readonly IHotelService _hotelService;
-
+        private readonly IHolidayPriceService _holidayPriceService;
         private readonly IMapper _mapper;
 
-        public FlightsController(IHotelService hotelService, IMapper mapper, IFlightService flightservice, IService<City> cityservice, IRouteService routeservice)
+        public FlightsController(
+            IHotelService hotelService,
+            IMapper mapper,
+            IFlightService flightservice,
+            IService<City> cityservice,
+            IRouteService routeservice,
+            IHolidayPriceService holidayPriceService)
         {
             _mapper = mapper;
             _hotelService = hotelService;
-
             flightService = flightservice;
             cityService = cityservice;
             routeService = routeservice;
+            _holidayPriceService = holidayPriceService;
         }
 
         [HttpGet]
@@ -57,6 +64,27 @@ namespace FlightApp.Controllers
             {
                 var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
+
+                // Apply holiday price factor to each flight
+                foreach (var flight in listVM)
+                {
+                    if (flight.DepartureTime.HasValue && flight.Price.HasValue)
+                    {
+                        // Get the holiday price factor for the departure city
+                        double priceFactor = await _holidayPriceService.GetHolidayPriceFactor(
+                            Convert.ToInt16(entity.DepartureCityID),
+                            flight.DepartureTime.Value);
+
+                        // Apply the price factor
+                        flight.Price = flight.Price * priceFactor;
+
+                        // Optionally, add a note about holiday pricing
+                        if (priceFactor > 1.0)
+                        {
+                            flight.Notes = $"Holiday pricing applied (x{priceFactor})";
+                        }
+                    }
+                }
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
 
@@ -118,7 +146,26 @@ namespace FlightApp.Controllers
                         try
                         {
                             Flight flight = await flightService.FindByIdAsync(Convert.ToInt16(v.FlightId));
-                            flightVMs.Add(_mapper.Map<FlightVM>(flight));
+                            var flightVM = _mapper.Map<FlightVM>(flight);
+
+                            // Apply holiday price factor to each flight in the route
+                            if (flightVM.DepartureTime.HasValue && flightVM.Price.HasValue)
+                            {
+                                double priceFactor = await _holidayPriceService.GetHolidayPriceFactor(
+                                    flight.DepartureCity,
+                                    flightVM.DepartureTime.Value);
+
+                                // Apply the price factor
+                                flightVM.Price = flightVM.Price * priceFactor;
+
+                                // Optionally, add a note about holiday pricing
+                                if (priceFactor > 1.0)
+                                {
+                                    flightVM.Notes = $"Holiday pricing applied (x{priceFactor})";
+                                }
+                            }
+
+                            flightVMs.Add(flightVM);
                         }
                         catch (Exception ex)
                         {
@@ -148,7 +195,7 @@ namespace FlightApp.Controllers
                         route.Layover2 = flightVMs[1].ArrivalCity;
                     }
 
-                    // Calculate and set the price for each route based on its flights
+                    // Calculate and set the price for each route based on its flights (with holiday factors applied)
                     route.Price = flightVMs.Sum(f => f.Price ?? 0) > 0
                         ? Convert.ToDecimal(flightVMs.Sum(f => f.Price ?? 0))
                         : 0;

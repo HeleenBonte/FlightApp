@@ -88,7 +88,8 @@ builder.Services.AddTransient<IHotelService, HotelService>();
 builder.Services.AddTransient<ITicketDAO, TicketDAO>();
 builder.Services.AddTransient<ITicketService, TicketService>();
 
-
+builder.Services.AddScoped<IDAO<Holiday>, HolidayDAO>();
+builder.Services.AddScoped<IHolidayPriceService, HolidayPriceService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
