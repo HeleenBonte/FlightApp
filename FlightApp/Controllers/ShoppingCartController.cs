@@ -454,5 +454,305 @@ namespace FlightApp.Controllers
         {
             return RedirectToAction("ConfirmBooking", "Booking");
         }
+        [HttpGet]
+        public async Task<IActionResult> AddFlightToCart(int id)
+        {
+            try
+            {
+                // Ensure authentication state is preserved
+                if (!User.Identity?.IsAuthenticated ?? false)
+                {
+                    // If accessing directly and not authenticated, redirect to login
+                    return RedirectToPage("/Account/Login", new { area = "Identity" });
+                }
+
+                var flight = await _dbContext.Flights
+                    .Include(f => f.DepartureCityNavigation)
+                    .Include(f => f.ArrivalCityNavigation)
+                    .FirstOrDefaultAsync(f => f.FlightId == id);
+
+                if (flight == null)
+                {
+                    return NotFound();
+                }
+
+                var cart = GetCartFromSession();
+
+                // Check if flight is already in cart
+                var existingFlightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == id);
+                if (existingFlightItem != null)
+                {
+                    // Check if passengers have been selected for this flight
+                    if (existingFlightItem.Passengers == null || !existingFlightItem.Passengers.Any() ||
+                        existingFlightItem.Passengers.Count < existingFlightItem.PassengerCount)
+                    {
+                        // Redirect to select passengers if they haven't been selected yet
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = id });
+                    }
+
+                    TempData["Message"] = "This flight is already in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Create new flight cart item
+                var flightCartItem = new FlightCartItemVM
+                {
+                    FlightId = flight.FlightId,
+                    DepartureTime = flight.DepartureTime,
+                    DepartureCity = flight.DepartureCityNavigation?.CityName,
+                    ArrivalCity = flight.ArrivalCityNavigation?.CityName,
+                    ArrivalTime = flight.ArrivalTime,
+                    Price = flight.Price,
+                    TotalPrice = flight.Price,
+                    Passengers = new List<PassengerVM>()
+                };
+
+                cart.FlightItems.Add(flightCartItem);
+                SaveCartToSession(cart);
+
+                TempData["Message"] = "Flight added to your basket successfully.";
+                return RedirectToAction("SelectFlightPassengers", new { flightId = id });
+            }
+            catch (Exception ex)
+            {
+                return View("Error", new ErrorViewModel { RequestId = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SelectFlightPassengers(int flightId, int? passengerCount = null)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
+
+                if (flightItem == null)
+                {
+                    TempData["Error"] = "Flight not found in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Update passenger count if provided
+                if (passengerCount.HasValue)
+                {
+                    flightItem.PassengerCount = passengerCount.Value;
+                    SaveCartToSession(cart);
+                }
+
+                // Get the flight details to determine departure and arrival cities
+                var flight = await _dbContext.Flights
+                    .FirstOrDefaultAsync(f => f.FlightId == flightId);
+
+                // Store city IDs in ViewBag for filtering meal choices
+                if (flight != null)
+                {
+                    ViewBag.DepartureCityId = flight.DepartureCity;
+                    ViewBag.ArrivalCityId = flight.ArrivalCity;
+                }
+
+                // Retrieve meal choices from the database and map to view models
+                var mealChoiceEntities = await _dbContext.MealChoices
+                    .Include(m => m.City)
+                    .ToListAsync();
+
+                var mealChoices = _mapper.Map<List<MealChoiceVM>>(mealChoiceEntities);
+                ViewBag.MealChoices = mealChoices;
+
+                // Retrieve booking classes from the database and map to view models
+                var bookingClassEntities = await _dbContext.BookingClasses.ToListAsync();
+                var bookingClasses = _mapper.Map<List<BookingClassVM>>(bookingClassEntities);
+                ViewBag.BookingClasses = bookingClasses;
+
+                return View(flightItem);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SelectFlightPassengers(int flightId, int passengerCount)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
+
+                if (flightItem == null)
+                {
+                    TempData["Error"] = "Flight not found in your basket.";
+                    return RedirectToAction("Index");
+                }
+
+                // Update passenger count
+                flightItem.PassengerCount = passengerCount;
+                SaveCartToSession(cart);
+
+                // Redirect back to GET action to show the updated form
+                return RedirectToAction("SelectFlightPassengers", new { flightId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveFlightPassengers(int flightId, List<PassengerVM> passengers, int passengerCount)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
+
+                if (flightItem != null)
+                {
+                    // Update the passenger count
+                    flightItem.PassengerCount = passengerCount;
+
+                    // Take only the required number of passengers
+                    var selectedPassengers = passengers.Take(passengerCount).ToList();
+
+                    // Check for duplicate names
+                    var duplicateNames = selectedPassengers
+                        .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+
+                    if (duplicateNames.Any())
+                    {
+                        TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = flightId });
+                    }
+
+                    // Validate that each passenger has selected a meal choice and booking class
+                    if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
+                    {
+                        TempData["Error"] = "Each passenger must select a meal preference and booking class.";
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = flightId });
+                    }
+
+                    // Check if we have all required fields
+                    if (selectedPassengers.Any(p =>
+                        string.IsNullOrEmpty(p.FirstName) ||
+                        string.IsNullOrEmpty(p.LastName) ||
+                        string.IsNullOrEmpty(p.Email) ||
+                        p.DateOfBirth == default))
+                    {
+                        TempData["Error"] = "Please provide all required information for each passenger.";
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = flightId });
+                    }
+
+                    // Save passengers to database (if they don't already exist)
+                    foreach (var passengerVM in selectedPassengers)
+                    {
+                        // Get booking class information
+                        var bookingClass = await _dbContext.BookingClasses
+                            .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
+
+                        if (bookingClass != null)
+                        {
+                            passengerVM.BookingClassName = bookingClass.Description;
+                            passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
+                        }
+
+                        // Check if passenger with same name and email already exists
+                        var existingPassenger = await _dbContext.Passengers
+                            .FirstOrDefaultAsync(p =>
+                                p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
+                                p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
+                                p.Email.ToLower() == passengerVM.Email.ToLower());
+
+                        if (existingPassenger == null)
+                        {
+                            // Create new passenger entity
+                            var passenger = new Passenger
+                            {
+                                FirstName = passengerVM.FirstName,
+                                LastName = passengerVM.LastName,
+                                Email = passengerVM.Email,
+                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
+                            };
+
+                            // Add new passenger to database
+                            await _dbContext.Passengers.AddAsync(passenger);
+                            await _dbContext.SaveChangesAsync();
+
+                            // Update the PassengerId in the ViewModel
+                            passengerVM.PassengerId = passenger.PassengerId;
+                        }
+                        else
+                        {
+                            // Check if date of birth is different and update if needed
+                            DateOnly newBirthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth);
+                            if (existingPassenger.Birthdate != newBirthdate)
+                            {
+                                // Update the passenger's date of birth in the database
+                                existingPassenger.Birthdate = newBirthdate;
+                                _dbContext.Passengers.Update(existingPassenger);
+                                await _dbContext.SaveChangesAsync();
+                            }
+
+                            // Use the existing passenger's ID
+                            passengerVM.PassengerId = existingPassenger.PassengerId;
+                        }
+                    }
+
+                    // Update the passenger list in the cart
+                    flightItem.Passengers = selectedPassengers;
+
+                    // Recalculate the total price based on booking classes
+                    flightItem.TotalPrice = flightItem.GetTotalPrice();
+
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Passenger information saved successfully.";
+
+                    // Redirect to the Index action
+                    return RedirectToAction("Index", "ShoppingCart");
+                }
+                else
+                {
+                    TempData["Error"] = "Flight not found in your basket.";
+                    return RedirectToAction("Index", "ShoppingCart");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult RemoveFlightFromCart(int flightId)
+        {
+            try
+            {
+                var cart = GetCartFromSession();
+                var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
+
+                if (flightItem != null)
+                {
+                    cart.FlightItems.Remove(flightItem);
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Flight removed from your basket.";
+                }
+                else
+                {
+                    TempData["Error"] = "Flight not found in your basket.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred while removing the flight: {ex.Message}";
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }

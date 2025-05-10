@@ -1,0 +1,231 @@
+﻿@model FlightApp.ViewModels.FlightCartItemVM
+@using FlightApp.ViewModels
+@{
+    ViewData["Title"] = "Select Passengers";
+    var mealChoices = ViewBag.MealChoices as List<MealChoiceVM> ?? new List<MealChoiceVM>();
+    var departureCityId = ViewBag.DepartureCityId;
+    var arrivalCityId = ViewBag.ArrivalCityId;
+}
+
+<div class="container mt-4">
+    <h2>Passenger Selection</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Flight Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>From:</strong> @Model.DepartureCity</p>
+                    <p><strong>To:</strong> @Model.ArrivalCity</p>
+                </div>
+                <div class="col-md-6">
+                    @if (Model.DepartureTime.HasValue)
+                    {
+                        <p><strong>Departure:</strong> @Model.DepartureTime.Value.ToString("dd MMM yyyy HH:mm")</p>
+                    }
+                    @if (Model.ArrivalTime.HasValue)
+                    {
+                        <p><strong>Arrival:</strong> @Model.ArrivalTime.Value.ToString("dd MMM yyyy HH:mm")</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="alert alert-warning" id="duplicateNamesWarning" style="display: none;">
+        <strong>Note:</strong> All passenger names must be unique. Two passengers cannot have the same first and last name.
+    </div>
+
+    <!-- Separate form for updating passenger count -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Select Number of Passengers</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="SelectFlightPassengers" asp-controller="ShoppingCart" method="post">
+                <input type="hidden" name="flightId" value="@Model.FlightId" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="passengerCount" class="form-label">Number of Passengers:</label>
+                        <select id="passengerCount" name="passengerCount" class="form-select" onchange="this.form.submit();">
+                            @for (int i = 1; i <= 10; i++)
+                            {
+                                <option value="@i" selected="@(i == Model.PassengerCount)">@i</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Form for passenger details -->
+    <form asp-action="SaveFlightPassengers" asp-controller="ShoppingCart" method="post" id="passengerForm" class="needs-validation">
+        <input type="hidden" name="flightId" value="@Model.FlightId" />
+        <input type="hidden" name="passengerCount" value="@Model.PassengerCount" />
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Enter Passenger Details</h4>
+                <span class="text-muted" id="passengerCountDisplay">Total passengers: @Model.PassengerCount</span>
+            </div>
+            <div class="card-body">
+                <div id="passengersContainer">
+                    @for (int i = 0; i < Model.PassengerCount; i++)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Passenger @(i + 1)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" name="passengers[@i].FirstName" class="form-control passenger-firstname" required onchange="checkDuplicateNames()" onkeyup="checkDuplicateNames()" />
+                                        <div class="invalid-feedback">First name is required.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" name="passengers[@i].LastName" class="form-control passenger-lastname" required onchange="checkDuplicateNames()" onkeyup="checkDuplicateNames()" />
+                                        <div class="invalid-feedback">Last name is required.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="passengers[@i].Email" class="form-control" required />
+                                        <div class="invalid-feedback">Valid email is required.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="date" name="passengers[@i].DateOfBirth" class="form-control" required />
+                                        <div class="invalid-feedback">Date of birth is required.</div>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Meal Preference</label>
+                                        <select name="passengers[@i].MealChoiceId" class="form-select" required>
+                                            <option value="">Select a meal option</option>
+                                            @foreach (var meal in mealChoices.Where(m =>
+                                           !m.CityId.HasValue ||
+                                           m.CityId == arrivalCityId))
+                                            {
+                                                <option value="@meal.MealChoiceId">@meal.Type</option>
+                                            }
+                                        </select>
+                                        <div class="invalid-feedback">Meal preference is required.</div>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Booking Class</label>
+                                        <select name="passengers[@i].BookingClassId" class="form-select" required>
+                                            <option value="">Select a booking class</option>
+                                            @foreach (var bookingClass in ViewBag.BookingClasses as List<BookingClassVM>)
+                                            {
+                                                <option value="@bookingClass.BookingClassId">@bookingClass.Description (@(bookingClass.PriceFactor == 1.0 ? "Standard Price" : $"{bookingClass.PriceFactor}x Price"))</option>
+                                            }
+                                        </select>
+                                        <div class="invalid-feedback">Booking class is required.</div>
+                                    </div>
+                                </div>
+                                <div class="duplicate-name-error text-danger" style="display: none;">
+                                    Passenger name must be unique. Another passenger has the same name.
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function checkDuplicateNames() {
+            const firstNames = document.querySelectorAll('.passenger-firstname');
+            const lastNames = document.querySelectorAll('.passenger-lastname');
+            const warningElement = document.getElementById('duplicateNamesWarning');
+
+            const nameMap = new Map();
+            let duplicateFound = false;
+
+            // Reset all duplicate indicators
+            document.querySelectorAll('.duplicate-name-error').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Check for duplicates
+            for (let i = 0; i < firstNames.length; i++) {
+                const firstName = firstNames[i].value.trim().toLowerCase();
+                const lastName = lastNames[i].value.trim().toLowerCase();
+
+                if (firstName && lastName) {
+                    const fullName = `${firstName}-${lastName}`;
+
+                    if (nameMap.has(fullName)) {
+                        // Mark both the current and previous duplicate as invalid
+                        firstNames[i].closest('.card-body').querySelector('.duplicate-name-error').style.display = 'block';
+                        firstNames[nameMap.get(fullName)].closest('.card-body').querySelector('.duplicate-name-error').style.display = 'block';
+                        duplicateFound = true;
+                    } else {
+                        nameMap.set(fullName, i);
+                    }
+                }
+            }
+
+            // Show or hide the global warning
+            if (warningElement) {
+                warningElement.style.display = duplicateFound ? 'block' : 'none';
+            }
+
+            return duplicateFound;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form validation
+            const form = document.getElementById('passengerForm');
+
+            form.addEventListener('submit', function(event) {
+                // Prevent form submission
+                event.preventDefault();
+
+                // Check for duplicate names
+                if (checkDuplicateNames()) {
+                    alert('Please ensure all passenger names are unique.');
+                    return false;
+                }
+
+                // Check all required fields
+                const allInputs = form.querySelectorAll('input[required], select[required]');
+                let isValid = true;
+
+                allInputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+
+                if (!isValid) {
+                    alert('Please fill in all required fields for all passengers.');
+                    return false;
+                }
+
+                // If everything is valid, submit the form
+                form.submit();
+            });
+        });
+    </script>
+}
