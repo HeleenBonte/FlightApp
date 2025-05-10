@@ -7,36 +7,40 @@
             @foreach (var flight in Model.flights)
             {
                 <div class="card mb-3">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
                         <h5 class="mb-0">Flight #@flight.FlightId</h5>
-                        <span class="badge bg-primary">€@flight.Price</span>
+                        <span class="badge bg-light text-primary">€@(flight.Price?.ToString("N2") ?? "0.00")</span>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-9">
-                                <div class="d-flex justify-content-between">
-                                    <div>
+                            <!-- Main flight -->
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="text-center me-2">
                                         <p class="mb-0"><strong>@flight.DepartureCity</strong></p>
                                         <p class="text-muted">@flight.DepartureTime?.ToString("HH:mm")</p>
                                     </div>
-                                    <div class="flex-grow-1 text-center">
-                                        <i class="bi bi-arrow-right"></i>
+                                    <div class="flex-grow-1 d-flex justify-content-center align-items-center">
+                                        <hr class="flex-grow-1 border-2 border-primary" />
+                                        <i class="bi bi-airplane mx-2 fs-4 text-primary"></i>
+                                        <hr class="flex-grow-1 border-2 border-primary" />
                                     </div>
-                                    <div>
+                                    <div class="text-center ms-2">
                                         <p class="mb-0"><strong>@flight.ArrivalCity</strong></p>
                                         <p class="text-muted">@flight.ArrivalTime?.ToString("HH:mm")</p>
                                     </div>
                                 </div>
-                                <div class="mt-2">
-                                    <p class="mb-0">
-                                        <strong>Date:</strong>
-                                        @flight.DepartureTime?.ToString("dd MMM yyyy")
-                                    </p>
-                                </div>
                             </div>
-                            <div class="col-md-3 d-flex align-items-center justify-content-end">
+
+                            <!-- Date and action button -->
+                            <div class="col-8">
+                                <p class="mb-0">
+                                    <strong>Date:</strong> @flight.DepartureTime?.ToString("dd MMM yyyy")
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
                                 <a asp-controller="Flights" asp-action="AddToCart" asp-route-id="@flight.FlightId"
-                                   class="btn btn-success">
+                                   class="btn btn-primary">
                                     <i class="bi bi-cart-plus"></i> Add to Cart
                                 </a>
                             </div>

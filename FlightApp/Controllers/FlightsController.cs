@@ -147,18 +147,25 @@ namespace FlightApp.Controllers
                         route.Layover1 = flightVMs[2].ArrivalCity;
                         route.Layover2 = flightVMs[1].ArrivalCity;
                     }
+
+                    // Calculate and set the price for each route based on its flights
+                    route.Price = flightVMs.Sum(f => f.Price ?? 0) > 0
+                        ? Convert.ToDecimal(flightVMs.Sum(f => f.Price ?? 0))
+                        : 0;
                 }
+
                 RouteListHotelListVM routeListHotelListVM = new RouteListHotelListVM();
                 routeListHotelListVM.routes = listVM;
                 routeListHotelListVM.hotels = new List<HotelVM>();
 
-                if (!routeList.IsNullOrEmpty()) { 
-                var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
-                routeListHotelListVM.hotels = hotels;
+                if (!routeList.IsNullOrEmpty())
+                {
+                    var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
+                    routeListHotelListVM.hotels = hotels;
                 }
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
-                return PartialView("_SearchRoutesPartial", routeListHotelListVM) ;
+                return PartialView("_SearchRoutesPartial", routeListHotelListVM);
             }
             catch (Exception ex)
             {

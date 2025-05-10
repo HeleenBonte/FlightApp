@@ -1,84 +1,119 @@
 ﻿@model FlightApp.ViewModels.RouteListHotelListVM
 
-
-
-    @if(Model.routes.Count() != 0){
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Route ID
-            </th>
-            <th>
-                Departure Time
-            </th>
-            <th>
-               Departure City
-            </th>
-            <th>
-                Arrival City
-            </th>
-            <th>
-                Arrival Time
-            </th>
-            <th>
-                Layover 1
-            </th>
-            <th>
-               Layover 2
-            </th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.routes)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.RouteId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartureTime)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartureCity)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ArrivalCity)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ArrivalTime)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Layover1)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Layover2)
-                </td>
-                <td>
-                    <!-- Change to a standard link instead of a form -->
-                    <a href="@Url.Action("AddRouteToCart", "ShoppingCart", new { id = item.RouteId })"
-                       class="btn btn-primary">Add to Cart</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-    </table>
-
-
-
-}
-else
-{
-    <p>We could not find any routes between these cities. We may have separate flights, find them <a asp-area="" asp-controller="Flights" asp-action="Index">HERE</a>.</p>
-}
-    @if(Model.hotels.Count() != 0){
-        <div>
-    @foreach(var item in Model.hotels)
+<div class="results-container mt-3">
+    @if (Model.routes.Any())
     {
-        <div class="hotel-tile">
-            @await Html.PartialAsync("DisplayTemplates/_HotelTile", item)
+        <div class="search-results">
+            @foreach (var route in Model.routes)
+            {
+                // Calculate the price based on flights in the route
+                var calculatedPrice = route.Flights.Sum(f => f.Price ?? 0);
+                // Set the price property for future use with explicit cast to decimal
+                if (route.Price == 0)
+                {
+                    route.Price = Convert.ToDecimal(calculatedPrice);
+                }
+
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                        <h5 class="mb-0">Route #@route.RouteId</h5>
+                        <span class="badge bg-light text-success">€@route.Price.ToString("N2")</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Main route -->
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="text-center me-2">
+                                        <p class="mb-0"><strong>@route.DepartureCity</strong></p>
+                                        <p class="text-muted">@route.DepartureTime?.ToString("HH:mm")</p>
+                                    </div>
+                                    <div class="flex-grow-1 d-flex justify-content-center align-items-center">
+                                        <hr class="flex-grow-1 border-2 border-success" />
+                                        <i class="bi bi-arrow-right mx-2 fs-4 text-success"></i>
+                                        <hr class="flex-grow-1 border-2 border-success" />
+                                    </div>
+                                    <div class="text-center ms-2">
+                                        <p class="mb-0"><strong>@route.ArrivalCity</strong></p>
+                                        <p class="text-muted">@route.ArrivalTime?.ToString("HH:mm")</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Layover information -->
+                            @if (!string.IsNullOrEmpty(route.Layover1) || !string.IsNullOrEmpty(route.Layover2))
+                            {
+                                <div class="col-12 mb-2">
+                                    <div class="row">
+                                        @if (!string.IsNullOrEmpty(route.Layover1))
+                                        {
+                                            <div class="col-md-6 mb-2">
+                                                <div class="card card-body bg-light py-2">
+                                                    <strong>Layover 1:</strong>
+                                                    <div class="d-flex align-items-center mt-1">
+                                                        <div>@route.Layover1</div>
+                                                        <div class="flex-grow-1 d-flex justify-content-center">
+                                                            <i class="bi bi-arrow-right text-secondary mx-2"></i>
+                                                        </div>
+                                                        <div>@(!string.IsNullOrEmpty(route.Layover2) ? route.Layover2 : route.ArrivalCity)</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(route.Layover2))
+                                        {
+                                            <div class="col-md-6 mb-2">
+                                                <div class="card card-body bg-light py-2">
+                                                    <strong>Layover 2:</strong>
+                                                    <div class="d-flex align-items-center mt-1">
+                                                        <div>@route.Layover2</div>
+                                                        <div class="flex-grow-1 d-flex justify-content-center">
+                                                            <i class="bi bi-arrow-right text-secondary mx-2"></i>
+                                                        </div>
+                                                        <div>@route.ArrivalCity</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Date and action button -->
+                            <div class="col-8">
+                                <p class="mb-0">
+                                    <strong>Date:</strong> @route.DepartureTime?.ToString("dd MMM yyyy")
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <a href="@Url.Action("AddRouteToCart", "ShoppingCart", new { id = route.RouteId })"
+                                   class="btn btn-success">
+                                    <i class="bi bi-cart-plus"></i> Add to Cart
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
+    else
+    {
+        <div class="alert alert-warning">
+            No routes found matching your criteria. You may find separate flights <a asp-area="" asp-controller="Flights" asp-action="Index">here</a>.
         </div>
+    }
+
+    @if (Model.hotels.Any())
+    {
+        <div class="mt-4">
+            <h4>Recommended Hotels</h4>
+            @foreach (var hotel in Model.hotels)
+            {
+                <div class="hotel-tile">
+                    @await Html.PartialAsync("DisplayTemplates/_HotelTile", hotel)
+                </div>
+            }
+        </div>
+    }
     }
