@@ -16,5 +16,6 @@
         public DateTime? ArrivalTime { get; set; }
         public string? BookingClassName { get; set; }
         public string? MealChoiceType { get; set; }
+        public string? Notes { get; set; }
     }
 }

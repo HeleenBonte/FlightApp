@@ -11,5 +11,6 @@
         public DateTime? ArrivalTime { get; set; }
         public int SeatNumber { get; set; }
         public string BookingClassName { get; set; }
+        public string? Notes { get; set; }
     }
 }
