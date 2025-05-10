@@ -21,8 +21,16 @@ namespace FlightApp.Repositories
 
         public async Task AddAsync(BookingHistory entity)
         {
-            await _dbContext.BookingHistories.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await dbContext.BookingHistories.AddAsync(entity);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(BookingHistory entity)
