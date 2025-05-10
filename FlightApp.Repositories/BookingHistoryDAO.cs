@@ -23,8 +23,8 @@ namespace FlightApp.Repositories
         {
             try
             {
-                await dbContext.BookingHistories.AddAsync(entity);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.BookingHistories.AddAsync(entity);
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {

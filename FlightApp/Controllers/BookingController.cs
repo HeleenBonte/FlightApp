@@ -528,7 +528,7 @@ namespace FlightApp.Controllers
                     }
 
                     // Only fetch hotels if we have a valid cityApiId
-                    hotels = !string.IsNullOrEmpty(cityApiId) ? await GetHotelVMList(cityApiId) : new List<HotelVM>();
+                   // hotels = !string.IsNullOrEmpty(cityApiId) ? await GetHotelVMList(cityApiId) : new List<HotelVM>();
 
                     // Get all tickets for this booking
                     var tickets = await _dbContext.Tickets

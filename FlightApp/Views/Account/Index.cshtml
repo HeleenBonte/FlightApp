@@ -60,10 +60,7 @@
                                         }
                                     </td>
                                     <td>
-                                        <a asp-controller="Booking" asp-action="ViewBookingDetails" asp-route-id="@item.BookingId"
-                                           class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-eye"></i> View Details
-                                        </a>
+                                        @Html.ActionLink("Delete", "Delete", new { id = item.BookingId})
                                     </td>
                                 </tr>
                             }

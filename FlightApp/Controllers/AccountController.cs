@@ -51,10 +51,10 @@ namespace FlightApp.Controllers
                     var firstBookingWithCity = bookingHistoryVMs.FirstOrDefault(b => b.ArrivalCityData?.ApiId != null);
                     List<HotelVM> hotels = new List<HotelVM>();
 
-                    if (firstBookingWithCity != null)
-                    {
-                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString());
-                    }
+                    //if (firstBookingWithCity != null)
+                    //{
+                    //    hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString());
+                    //}
 
                     BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM
                     {

@@ -64,11 +64,11 @@ namespace FlightApp.Controllers
                 flightListHotelListVM.flights = listVM;
                 flightListHotelListVM.hotels = new List<HotelVM>();
 
-                if (listVM != null)
-                {
-                    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString());
-                    flightListHotelListVM.hotels = hotels;
-                }
+                //if (listVM != null)
+                //{
+                //    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString());
+                //    flightListHotelListVM.hotels = hotels;
+                //}
 
                 return PartialView("_SearchFlightsPartial", flightListHotelListVM);
             }
@@ -158,11 +158,11 @@ namespace FlightApp.Controllers
                 routeListHotelListVM.routes = listVM;
                 routeListHotelListVM.hotels = new List<HotelVM>();
 
-                if (!routeList.IsNullOrEmpty())
-                {
-                    var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
-                    routeListHotelListVM.hotels = hotels;
-                }
+                //if (!routeList.IsNullOrEmpty())
+                //{
+                //    var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
+                //    routeListHotelListVM.hotels = hotels;
+                //}
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
                 return PartialView("_SearchRoutesPartial", routeListHotelListVM);
