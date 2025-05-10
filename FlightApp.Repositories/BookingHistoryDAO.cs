@@ -16,13 +16,22 @@ namespace FlightApp.Repositories
 
         public BookingHistoryDAO(FlightsDbContext _dbContext)
         {
+             
             dbContext = _dbContext;
         }
 
         public async Task AddAsync(BookingHistory entity)
         {
-            await dbContext.BookingHistories.AddAsync(entity);
-            await dbContext.SaveChangesAsync();
+            try
+            {
+                await dbContext.BookingHistories.AddAsync(entity);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(BookingHistory entity)
@@ -43,13 +52,21 @@ namespace FlightApp.Repositories
 
         public async Task<IEnumerable<BookingHistory>?> GetAllByUserIdAsync(string userId)
         {
-            return await dbContext.BookingHistories
-                .Include(b => b.Booking)
-                .Include(b => b.Booking.Route)
-                .Include(b => b.Booking.Route.ArrivalCity)
-                .Include(b => b.Booking.Route.DepartureCity)
-                .Where(b => b.UserId == userId)
-                .ToListAsync();
+            try
+            {
+                return await dbContext.BookingHistories
+            .Include(b => b.Booking)
+            .Include(b => b.Booking.Route)
+            .Include(b => b.Booking.Route.ArrivalCity)
+            .Include(b => b.Booking.Route.DepartureCity)
+            .Where(b => b.UserId == userId)
+            .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error DAO");
+                throw;
+            }
         }
 
         public Task UpdateAsync(BookingHistory entity)

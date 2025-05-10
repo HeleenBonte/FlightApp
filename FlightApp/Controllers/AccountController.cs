@@ -2,6 +2,7 @@
 using FlightApp.Areas.Identity.Data;
 using FlightApp.Domains.EntitiesDB;
 using FlightApp.Repositories.Interfaces;
+using FlightApp.Services.Interfaces;
 using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -13,15 +14,17 @@ namespace FlightApp.Controllers
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IBookingHistoryDAO _bookingHistoryDAO;
+        private readonly IBookingHistoryService _bookingHistoryService;
         private readonly IMapper _mapper;
         private readonly IHotelService _hotelService;
-        public AccountController(UserManager<ApplicationUser> userManager, IBookingHistoryDAO bookingHistoryDAO, IMapper mapper, IHotelService hotelService)
+        private readonly IService <Booking> _bookingService;
+        public AccountController(UserManager<ApplicationUser> userManager, IBookingHistoryService bookingHistoryService, IMapper mapper, IHotelService hotelService, IService<Booking> bookingService)
         {
             _userManager = userManager;
-            _bookingHistoryDAO = bookingHistoryDAO;
+            _bookingHistoryService = bookingHistoryService;
             _mapper = mapper;
             _hotelService = hotelService;
+            _bookingService = bookingService;
         }
         public async Task<IActionResult> Index()
         {
@@ -30,7 +33,7 @@ namespace FlightApp.Controllers
             {
                 try { 
                 // User is logged in, redirect to the desired page
-                var history = await _bookingHistoryDAO.GetAllByUserIdAsync(userId);
+                var history = await _bookingHistoryService.GetAllByUserIdAsync(userId);
                 List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
 
                 var hotels = await GetHotelVMList(bookingHistoryVMs.First().ArrivalCityData.ApiId.ToString());
@@ -41,13 +44,55 @@ namespace FlightApp.Controllers
                     return View(bookingHistoryHotelListVM);
             }
                 catch(Exception ex) {
-                    ViewBag.ErrorMessage = "Er is een probleem opgetreden bij het ophalen van de lijst";
+                    ModelState.AddModelError("", "Call the administrator");
                     return View("Error");
                 }
             }
             return View();
             
         }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            Booking? booking = await _bookingService.FindByIdAsync(id.Value);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+            var bookingVM = _mapper.Map<BookingVM>(booking);
+            return View(bookingVM);
+        }
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                Booking? booking = await _bookingService.FindByIdAsync(Convert.ToInt32(id));
+                if (booking == null)
+                {
+                    return NotFound();
+                }
+                await _bookingService.DeleteAsync(booking);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Unable to delete data.");
+                return View("Error");
+            }
+        }
+
+
+
         public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
         {
             var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);

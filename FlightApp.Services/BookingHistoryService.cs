@@ -36,7 +36,7 @@ namespace FlightApp.Services
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<BookingHistory>?> GetAllByUserIdAsync(string userId)
+        public async Task<IEnumerable<BookingHistory>> GetAllByUserIdAsync(string userId)
         {
             return await _bookingHistoryDAO.GetAllByUserIdAsync(userId);
         }

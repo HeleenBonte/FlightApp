@@ -41,11 +41,11 @@
                 @Html.DisplayFor(modelItem => item.ArrivalCity)
             </td>
             <td>
-                        @if (DateOnly.FromDateTime(item.DepartureTime).AddDays(-7) == DateOnly.FromDateTime(DateTime.Now))
+                        @if (DateOnly.FromDateTime(item.DepartureTime).AddDays(-7) >= DateOnly.FromDateTime(DateTime.Now))
                 {
                                                      
-                            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-                })
+                            @Html.ActionLink("Delete", "Delete", new { id = item.BookingId })
+                }
                 
             </td>
         </tr>

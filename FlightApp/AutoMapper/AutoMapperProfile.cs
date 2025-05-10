@@ -30,7 +30,10 @@ namespace FlightApp.AutoMapper
                         src => src.User.UserName))
                 .ForMember(dest => dest.RouteId,
                     opts => opts.MapFrom(
-                        src => src.Route.RouteId));
+                        src => src.Route.RouteId))
+                .ForMember(dest => dest.BookingTime,
+                opts => opts.MapFrom(
+                    src => DateOnly.FromDateTime(src.BookingTime)));
 
 
             //City
