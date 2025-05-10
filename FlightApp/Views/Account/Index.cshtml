@@ -41,9 +41,12 @@
                 @Html.DisplayFor(modelItem => item.ArrivalCity)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                        @if (DateOnly.FromDateTime(item.DepartureTime).AddDays(-7) == DateOnly.FromDateTime(DateTime.Now))
+                {
+                                                     
+                            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                })
+                
             </td>
         </tr>
 }
@@ -54,7 +57,7 @@ else{
     <p>You have not yet booked any flights. Click <a  asp-area="" asp-controller="Flights" asp-action="GetRoutes">HERE</a> to find a route.</p>
 }
 
-@if (Model.Hotels.Count() != 0)
+@if (Model.Hotels.Count() != 0 && Model.Hotels.Any())
 {
     <div>
         @foreach (var item in Model.Hotels)

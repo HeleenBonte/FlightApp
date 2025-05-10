@@ -52,7 +52,7 @@
             No flights found matching your criteria.
         </div>
     }
-    @if (Model.hotels.Count() != 0)
+    @if (Model.hotels.Count() != 0 && Model.hotels.Any())
     {
         <div>
             @foreach (var item in Model.hotels)

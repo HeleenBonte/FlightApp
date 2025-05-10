@@ -32,9 +32,18 @@ namespace FlightApp.Repositories
             }
         }
 
-        public Task DeleteAsync(Booking entity)
+        public async Task DeleteAsync(Booking entity)
         {
-            throw new NotImplementedException();
+            dbContext.Entry(entity).State = EntityState.Deleted;
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public async Task<Booking?> FindByIdAsync(int Id)

@@ -72,7 +72,8 @@ else
 {
     <p>We could not find any routes between these cities. We may have separate flights, find them <a asp-area="" asp-controller="Flights" asp-action="Index">HERE</a>.</p>
 }
-    @if(Model.hotels.Count() != 0){
+@if (Model.hotels.Count() != 0 && Model.hotels.Any())
+{
         <div>
     @foreach(var item in Model.hotels)
     {

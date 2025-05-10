@@ -306,7 +306,7 @@
         </div>
     </div>
 </div>
-@if (Model.Hotels.Count() != 0)
+@if (Model.Hotels.Count() != 0 && Model.Hotels.Any())
 {
     <div>
         @foreach (var item in Model.Hotels)

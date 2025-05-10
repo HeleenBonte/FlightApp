@@ -11,5 +11,6 @@ namespace FlightApp.ViewModels
         public string DepartureCity { get; set; } 
         public string ArrivalCity { get; set; }
         public City ArrivalCityData { get; set; }
+        public DateTime DepartureTime { get; set; }
     }
 }
