@@ -1,0 +1,17 @@
+﻿@model FlightApp.ViewModels.HotelVM
+
+@if(Model != null){
+    var photoUrl = Model.PhotoUrls.First().Replace("square60", "max300");
+<a href="@Model.Url">
+<div class="tile col-md-6">
+   <h1>@Model.Hotel_name</h1>
+   <h2>@Model.ReviewScore &frasl;10</h2>
+   <p>@Model.PriceString per person per night</p>
+   <img src="@photoUrl" alt="Hotel Picture" />
+</div>
+    </a>
+}
+else
+{
+    <p>We could not retrieve hotel, please try again later</p>
+}

@@ -13,11 +13,15 @@ public partial class Booking
 
     public bool PaymentStatus { get; set; }
 
-    public int RouteId { get; set; }
+    public int? RouteId { get; set; }
+
+    public int? FlightId { get; set; }
 
     public virtual ICollection<BookingHistory> BookingHistories { get; set; } = new List<BookingHistory>();
 
-    public virtual Route Route { get; set; } = null!;
+    public virtual Flight? Flight { get; set; }
+
+    public virtual Route? Route { get; set; }
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 

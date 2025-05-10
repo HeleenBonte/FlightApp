@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.EntitiesDB;
 using FlightApp.Services.Interfaces;
+using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,12 +14,15 @@ namespace FlightApp.Controllers
         private IFlightService flightService;
         private IService<City> cityService;
         private IRouteService routeService;
-            
+        private readonly IHotelService _hotelService;
+
         private readonly IMapper _mapper;
 
-        public FlightsController(IMapper mapper, IFlightService flightservice, IService<City> cityservice, IRouteService routeservice)
+        public FlightsController(IHotelService hotelService, IMapper mapper, IFlightService flightservice, IService<City> cityservice, IRouteService routeservice)
         {
             _mapper = mapper;
+            _hotelService = hotelService;
+
             flightService = flightservice;
             cityService = cityservice;
             routeService = routeservice;
@@ -134,10 +138,17 @@ namespace FlightApp.Controllers
                         route.Layover2 = flightVMs[1].ArrivalCity;
                     }
                 }
+                RouteListHotelListVM routeListHotelListVM = new RouteListHotelListVM();
+                routeListHotelListVM.routes = listVM;
+                routeListHotelListVM.hotels = new List<HotelVM>();
+
+                if (!routeList.IsNullOrEmpty()) { 
+                var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
+                routeListHotelListVM.hotels = hotels;
+                }
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
-
-                return PartialView("_SearchRoutesPartial", listVM);
+                return PartialView("_SearchRoutesPartial", routeListHotelListVM) ;
             }
             catch (Exception ex)
             {
@@ -155,6 +166,28 @@ namespace FlightApp.Controllers
         public IActionResult ViewCart()
         {
             return RedirectToAction("Index", "ShoppingCart");
+        }
+
+
+
+
+
+        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
+        {
+
+
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
+            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
+            lstHotelIds = lstHotelIds.Slice(0, 3);
+            List<HotelVM> hotels = new List<HotelVM>();
+            foreach (var hotelId in lstHotelIds)
+            {
+                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
+                var hotelvm = _mapper.Map<HotelVM>(hotel);
+                
+                hotels.Add(hotelvm);
+            }
+            return hotels;
         }
     }
 }

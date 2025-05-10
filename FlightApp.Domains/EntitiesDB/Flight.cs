@@ -21,6 +21,8 @@ public partial class Flight
 
     public virtual City ArrivalCityNavigation { get; set; } = null!;
 
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
     public virtual City DepartureCityNavigation { get; set; } = null!;
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();

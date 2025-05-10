@@ -134,14 +134,18 @@ public partial class FlightsDbContext : DbContext
 
             entity.Property(e => e.BookingId).HasColumnName("BookingID");
             entity.Property(e => e.BookingTime).HasColumnType("datetime");
+            entity.Property(e => e.FlightId).HasColumnName("FlightID");
             entity.Property(e => e.RouteId).HasColumnName("RouteID");
             entity.Property(e => e.UserId)
                 .HasMaxLength(450)
                 .HasColumnName("UserID");
 
+            entity.HasOne(d => d.Flight).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.FlightId)
+                .HasConstraintName("FK_Booking_Flight");
+
             entity.HasOne(d => d.Route).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.RouteId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Booking_Route");
 
             entity.HasOne(d => d.User).WithMany(p => p.Bookings)

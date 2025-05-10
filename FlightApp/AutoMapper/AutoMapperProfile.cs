@@ -90,16 +90,6 @@ namespace FlightApp.AutoMapper
                 .ForMember(dest => dest.BookingClassName, opt => opt.MapFrom(src => src.BookingClass.Description))
                 .ForMember(dest => dest.MealChoiceType, opt => opt.MapFrom(src => src.MealChoice.Type));
 
-
-
-
-
-            //HotelIdVM
-            CreateMap<HotelId, HotelIDVm>()
-                .ForMember(dest => dest.Id,
-                opts => opts.MapFrom(
-                    src => src.hotel_id));
-
             //Hotel
             CreateMap<Hotel, HotelVM>()
                 .ForMember(dest => dest.Price,
@@ -110,7 +100,10 @@ namespace FlightApp.AutoMapper
                     src => src.composite_price_breakdown.all_inclusive_amount.amount_rounded))
                 .ForMember(dest => dest.PhotoUrls,
                 opts => opts.MapFrom(
-                    src => src.rawData.photoUrls));
+                    src => src.rawData.photoUrls))
+                .ForMember(dest => dest.ReviewScore,
+                opts => opts.MapFrom(
+                    src => src.rawData.reviewScore));
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

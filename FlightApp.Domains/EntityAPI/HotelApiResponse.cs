@@ -22,6 +22,7 @@ namespace FlightApp.Domains.EntityAPI
     public class RawData
     {
         public List<string> photoUrls { get; set; }
+        public double reviewScore { get; set; }
 
     }
     public class PriceClass

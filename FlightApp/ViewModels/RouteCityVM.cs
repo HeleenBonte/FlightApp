@@ -10,6 +10,6 @@ namespace FlightApp.ViewModels
         public int DepartureCityID { get; set; }
         public IEnumerable<RouteVM>? Routes { get; set; }
         [DataType(DataType.Date)]
-        public DateOnly DepartureDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public DateOnly DepartureDate { get; set; } = DateOnly.FromDateTime(DateTime.Now.AddDays(3));
     }
 }

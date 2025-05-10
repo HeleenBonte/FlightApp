@@ -79,6 +79,7 @@ namespace FlightApp.Util.Hotels
             
             using (var httpClient = new HttpClient())
             {
+                
                 try
                 {
                     var uri = $"{apiBaseUrl}{apiGetIdUrl}?dest_id={cityApiId}&search_type=city&arrival_date=2025-05-09&departure_date=2025-05-10";
@@ -122,5 +123,7 @@ namespace FlightApp.Util.Hotels
                 }
             }
         }
+
+
     }
 }

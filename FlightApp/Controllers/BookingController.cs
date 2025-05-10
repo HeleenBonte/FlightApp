@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using FlightApp.Util.Email;
+using FlightApp.Util.Hotels;
 
 namespace FlightApp.Controllers
 {
@@ -47,21 +48,7 @@ namespace FlightApp.Controllers
             _hotelService = hotelService;
         }
 
-        public async Task<IActionResult> Index()
-        {
-            
-            
-            var lstHotelIds = await _hotelService.GetHotelIdsAsync("-2601889");
-            var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
-            lstHotelIdsVm = lstHotelIdsVm.Slice(0,3);
-            List<HotelVM> hotels = new List<HotelVM>();
-            foreach(var hotelId in lstHotelIdsVm) {
-                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.Id);
-                var hotelvm = _mapper.Map<HotelVM>(hotel);
-                hotels.Add(hotelvm);
-            }
-                return View(hotels);
-        }
+
 
         [HttpGet]
         public IActionResult ConfirmBooking()
@@ -441,6 +428,13 @@ namespace FlightApp.Controllers
 
                     confirmVM.Passengers.Add(passengerVM);
                 }
+                ConfirmBookingHotelListVM confirmBookingHotelListVM = new ConfirmBookingHotelListVM
+                {
+                    ConfirmBooking = confirmVM,
+                    Hotels = await GetHotelVMList(booking.Route?.ArrivalCity?.ApiId.ToString())
+                };
+
+
 
                 return View(confirmVM);
             }
@@ -522,6 +516,25 @@ namespace FlightApp.Controllers
             {
                 return BadRequest($"Error generating ticket: {ex.Message}");
             }
+        }
+
+
+        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
+        {
+
+
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
+            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
+            lstHotelIds = lstHotelIds.Slice(0, 3);
+            List<HotelVM> hotels = new List<HotelVM>();
+            foreach (var hotelId in lstHotelIds)
+            {
+                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
+                var hotelvm = _mapper.Map<HotelVM>(hotel);
+
+                hotels.Add(hotelvm);
+            }
+            return hotels;
         }
     }
 }

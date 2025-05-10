@@ -9,5 +9,6 @@ namespace FlightApp.ViewModels
         public double Price { get; set; }
         public string PriceString { get; set; }
         public List<string> PhotoUrls { get; set; }
+        public double ReviewScore { get; set; }
     }
 }
