@@ -16,15 +16,15 @@ namespace FlightApp.Repositories
 
         public BookingHistoryDAO(FlightsDbContext dbContext)
         {
-            _dbContext = dbContext; // Fixed: parameter to field
+            _dbContext = dbContext;
         }
 
         public async Task AddAsync(BookingHistory entity)
         {
             try
             {
-                await dbContext.BookingHistories.AddAsync(entity);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.BookingHistories.AddAsync(entity);
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
