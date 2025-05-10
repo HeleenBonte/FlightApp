@@ -36,15 +36,37 @@ namespace FlightApp.Controllers
                 var history = await _bookingHistoryService.GetAllByUserIdAsync(userId);
                 List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
 
-                var hotels = await GetHotelVMList(bookingHistoryVMs.First().ArrivalCityData.ApiId.ToString());
-                    BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM();
-                    bookingHistoryHotelListVM.BookingHistory = bookingHistoryVMs;
-                    bookingHistoryHotelListVM.Hotels = hotels;
+                    // Handle case with no bookings
+                    if (!bookingHistoryVMs.Any())
+                    {
+                        BookingHistoryHotelListVM emptyModel = new BookingHistoryHotelListVM
+                        {
+                            BookingHistory = new List<BookingHistoryVM>(),
+                            Hotels = new List<HotelVM>()
+                        };
+                        return View(emptyModel);
+                    }
+
+                    // Get hotel recommendations for the first booking's arrival city
+                    var firstBookingWithCity = bookingHistoryVMs.FirstOrDefault(b => b.ArrivalCityData?.ApiId != null);
+                    List<HotelVM> hotels = new List<HotelVM>();
+
+                    if (firstBookingWithCity != null)
+                    {
+                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString());
+                    }
+
+                    BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM
+                    {
+                        BookingHistory = bookingHistoryVMs,
+                        Hotels = hotels
+                    };
 
                     return View(bookingHistoryHotelListVM);
-            }
-                catch(Exception ex) {
-                    ModelState.AddModelError("", "Call the administrator");
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = "An error occurred while retrieving your booking history.";
                     return View("Error");
                 }
             }

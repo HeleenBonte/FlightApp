@@ -468,7 +468,9 @@ namespace FlightApp.Controllers
             {
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
+
             List<HotelVM> hotels = new List<HotelVM>();
+
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -513,7 +515,21 @@ namespace FlightApp.Controllers
                         .FirstOrDefaultAsync(b => b.BookingId == bookingId);
 
                     if (booking == null) continue;
-                    hotels = await GetHotelVMList(booking.Route?.ArrivalCity?.ApiId.ToString());
+
+                    // Fixed hotel retrieval code
+                    string? cityApiId = null;
+                    if (booking.Route?.ArrivalCity?.ApiId != null)
+                    {
+                        cityApiId = booking.Route.ArrivalCity.ApiId.ToString();
+                    }
+                    else if (booking.Flight?.ArrivalCityNavigation?.ApiId != null)
+                    {
+                        cityApiId = booking.Flight.ArrivalCityNavigation.ApiId.ToString();
+                    }
+
+                    // Only fetch hotels if we have a valid cityApiId
+                    hotels = !string.IsNullOrEmpty(cityApiId) ? await GetHotelVMList(cityApiId) : new List<HotelVM>();
+
                     // Get all tickets for this booking
                     var tickets = await _dbContext.Tickets
                         .Include(t => t.Passenger)
@@ -702,11 +718,13 @@ namespace FlightApp.Controllers
                     confirmVM.DepartureTime = firstFlight.DepartureTime;
                     confirmVM.ArrivalTime = firstFlight.ArrivalTime;
                 }
+
                 ConfirmBookingHotelListVM confirmBookingHotelListVM = new ConfirmBookingHotelListVM
                 {
                     ConfirmBooking = confirmVM,
                     Hotels = hotels
                 };
+
                 return View(confirmBookingHotelListVM);
             }
             catch (Exception ex)
@@ -826,21 +844,35 @@ namespace FlightApp.Controllers
         }
 
 
-        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
+        public async Task<List<HotelVM>> GetHotelVMList(string? cityApiID)
         {
-
-
-            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
-            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
-            lstHotelIds = lstHotelIds.Slice(0, 3);
             List<HotelVM> hotels = new List<HotelVM>();
-            foreach (var hotelId in lstHotelIds)
-            {
-                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
-                var hotelvm = _mapper.Map<HotelVM>(hotel);
 
-                hotels.Add(hotelvm);
+            // Return empty list if cityApiID is null
+            if (string.IsNullOrEmpty(cityApiID))
+            {
+                return hotels;
             }
+
+            try
+            {
+                var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
+                //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
+                lstHotelIds = lstHotelIds.Slice(0, 3);
+
+                foreach (var hotelId in lstHotelIds)
+                {
+                    var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
+                    var hotelvm = _mapper.Map<HotelVM>(hotel);
+                    hotels.Add(hotelvm);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue - hotels are non-critical
+                System.Diagnostics.Debug.WriteLine($"Error loading hotels: {ex.Message}");
+            }
+
             return hotels;
         }
     }

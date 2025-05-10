@@ -64,23 +64,32 @@ namespace FlightApp.AutoMapper
                     src =>src.RouteNav.DepartureTime))
                 ;
 
-            //BookingHistory
+            // BookingHistory
             CreateMap<BookingHistory, BookingHistoryVM>()
-                .ForMember(dest => dest.DepartureCity,
-                    opts => opts.MapFrom(
-                        src => src.Booking.Route.DepartureCity.CityName))
-                .ForMember(dest => dest.ArrivalCity,
-                opts => opts.MapFrom(
-                    src => src.Booking.Route.ArrivalCity.CityName))
-                .ForMember(dest => dest.Passengers,
-                opts => opts.MapFrom(
-                    src => src.Booking.Passengers))
-                .ForMember(dest => dest.ArrivalCityData,
-                opts => opts.MapFrom(
-                    src => src.Booking.Route.ArrivalCity))
-                .ForMember(dest => dest.DepartureTime,
-                opts => opts.MapFrom(
-                    src => src.Booking.Route.DepartureTime ?? src.Booking.Flight.DepartureTime));
+                .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.BookingId))
+                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Booking.PaymentStatus))
+                .ForMember(dest => dest.BookingTime, opt => opt.MapFrom(src => src.Booking.BookingTime))
+                .ForMember(dest => dest.RouteId, opt => opt.MapFrom(src => src.Booking.RouteId))
+                .ForMember(dest => dest.FlightId, opt => opt.MapFrom(src => src.Booking.FlightId))
+                .ForMember(dest => dest.DepartureCity, opt => opt.MapFrom(src =>
+                    src.Booking.RouteId.HasValue && src.Booking.Route != null ?
+                    src.Booking.Route.DepartureCity.CityName :
+                    (src.Booking.FlightId.HasValue && src.Booking.Flight != null ?
+                    src.Booking.Flight.DepartureCityNavigation.CityName :
+                    "Unknown")))
+                .ForMember(dest => dest.ArrivalCity, opt => opt.MapFrom(src =>
+                    src.Booking.RouteId.HasValue && src.Booking.Route != null ?
+                    src.Booking.Route.ArrivalCity.CityName :
+                    (src.Booking.FlightId.HasValue && src.Booking.Flight != null ?
+                    src.Booking.Flight.ArrivalCityNavigation.CityName :
+                    "Unknown")))
+                .ForMember(dest => dest.ArrivalCityData, opt => opt.MapFrom(src =>
+                    src.Booking.RouteId.HasValue && src.Booking.Route != null ?
+                    src.Booking.Route.ArrivalCity :
+                    (src.Booking.FlightId.HasValue && src.Booking.Flight != null ?
+                    src.Booking.Flight.ArrivalCityNavigation :
+                    null)));
+
 
             //MealChoice
             CreateMap<MealChoice, MealChoiceVM>();
