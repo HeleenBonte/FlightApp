@@ -57,25 +57,24 @@ namespace FlightApp.Controllers
                     return NotFound();
                 }
 
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(id, null); // Pass ID to exclude from cleanup
 
                 // Check if route is already in cart
                 var existingRouteItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == id);
                 if (existingRouteItem != null)
                 {
-                    // Check if passengers have been selected for this route
+                    // If route exists but doesn't have passengers, redirect to select them
                     if (existingRouteItem.Passengers == null || !existingRouteItem.Passengers.Any() ||
                         existingRouteItem.Passengers.Count < existingRouteItem.PassengerCount)
                     {
-                        // Redirect to select passengers if they haven't been selected yet
                         return RedirectToAction("SelectPassengers", new { routeId = id });
                     }
 
-                    TempData["Message"] = "This route is already in your basket.";
+                    TempData["Message"] = "This route is already in your basket with passenger information.";
                     return RedirectToAction("Index");
                 }
 
-                // Create new route cart item
+                // Create new route cart item (temporary, not saved to session yet)
                 var routeCartItem = new RouteCartItemVM
                 {
                     RouteId = route.RouteId,
@@ -85,7 +84,9 @@ namespace FlightApp.Controllers
                     ArrivalTime = route.ArrivalTime,
                     Flights = new List<FlightVM>(),
                     TotalPrice = 0,
-                    Passengers = new List<PassengerVM>()
+                    Passengers = new List<PassengerVM>(),
+                    IsComplete = false, // Mark as incomplete until passengers are added
+                    AddedToCartTime = DateTime.Now
                 };
 
                 // Fetch flight details and calculate total price with holiday factor
@@ -128,10 +129,11 @@ namespace FlightApp.Controllers
                     }
                 }
 
+                // Add to cart but mark as temporary
                 cart.RouteItems.Add(routeCartItem);
                 SaveCartToSession(cart);
 
-                TempData["Message"] = "Route added to your basket successfully.";
+                // Redirect directly to passenger selection
                 return RedirectToAction("SelectPassengers", new { routeId = id });
             }
             catch (Exception ex)
@@ -140,14 +142,12 @@ namespace FlightApp.Controllers
             }
         }
 
-
-
         [HttpGet]
         public async Task<IActionResult> SelectPassengers(int routeId, int? passengerCount = null)
         {
             try
             {
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(routeId, null); // Pass routeId to exclude this item from cleanup
                 var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
                 if (routeItem == null)
@@ -196,141 +196,142 @@ namespace FlightApp.Controllers
             }
         }
 
-            [HttpPost]
-            public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
+        [HttpPost]
+        public async Task<IActionResult> SavePassengers(int routeId, List<PassengerVM> passengers, int passengerCount)
+        {
+            try
             {
-                try
+                var cart = GetCartFromSession(routeId, null); // Pass routeId to prevent cleanup
+                var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+
+                if (routeItem != null)
                 {
-                    var cart = GetCartFromSession();
-                    var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
+                    // Update the passenger count
+                    routeItem.PassengerCount = passengerCount;
 
-                    if (routeItem != null)
+                    // Take only the required number of passengers
+                    var selectedPassengers = passengers.Take(passengerCount).ToList();
+
+                    // Check for duplicate names
+                    var duplicateNames = selectedPassengers
+                        .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+
+                    if (duplicateNames.Any())
                     {
-                        // Update the passenger count
-                        routeItem.PassengerCount = passengerCount;
+                        TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
 
-                        // Take only the required number of passengers
-                        var selectedPassengers = passengers.Take(passengerCount).ToList();
+                    // Validate that each passenger has selected a meal choice and booking class
+                    if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
+                    {
+                        TempData["Error"] = "Each passenger must select a meal preference and booking class.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
 
-                        // Check for duplicate names
-                        var duplicateNames = selectedPassengers
-                            .GroupBy(p => new { FirstName = p.FirstName?.ToLower(), LastName = p.LastName?.ToLower() })
-                            .Where(g => g.Count() > 1)
-                            .Select(g => g.Key)
-                            .ToList();
+                    // Check if we have all required fields
+                    if (selectedPassengers.Any(p =>
+                        string.IsNullOrEmpty(p.FirstName) ||
+                        string.IsNullOrEmpty(p.LastName) ||
+                        string.IsNullOrEmpty(p.Email) ||
+                        p.DateOfBirth == default))
+                    {
+                        TempData["Error"] = "Please provide all required information for each passenger.";
+                        return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                    }
 
-                        if (duplicateNames.Any())
+                    // Save passengers to database (if they don't already exist)
+                    foreach (var passengerVM in selectedPassengers)
+                    {
+                        // Get booking class information
+                        var bookingClass = await _dbContext.BookingClasses
+                            .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
+
+                        if (bookingClass != null)
                         {
-                            TempData["Error"] = "Each passenger must have a unique name. Please ensure there are no duplicate names.";
-                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
+                            passengerVM.BookingClassName = bookingClass.Description;
+                            passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
                         }
 
-                        // Validate that each passenger has selected a meal choice and booking class
-                        if (selectedPassengers.Any(p => p.MealChoiceId == 0 || p.BookingClassId == 0))
-                        {
-                            TempData["Error"] = "Each passenger must select a meal preference and booking class.";
-                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
-                        }
+                        // Check if passenger with same name and email already exists
+                        var existingPassenger = await _dbContext.Passengers
+                            .FirstOrDefaultAsync(p =>
+                                p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
+                                p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
+                                p.Email.ToLower() == passengerVM.Email.ToLower());
 
-                        // Check if we have all required fields
-                        if (selectedPassengers.Any(p =>
-                            string.IsNullOrEmpty(p.FirstName) ||
-                            string.IsNullOrEmpty(p.LastName) ||
-                            string.IsNullOrEmpty(p.Email) ||
-                            p.DateOfBirth == default))
+                        if (existingPassenger == null)
                         {
-                            TempData["Error"] = "Please provide all required information for each passenger.";
-                            return RedirectToAction("SelectPassengers", new { routeId = routeId });
-                        }
-
-                        // Save passengers to database (if they don't already exist)
-                        foreach (var passengerVM in selectedPassengers)
-                        {
-                            // Get booking class information
-                            var bookingClass = await _dbContext.BookingClasses
-                                .FirstOrDefaultAsync(bc => bc.BookingClassId == passengerVM.BookingClassId);
-
-                            if (bookingClass != null)
+                            // Create new passenger entity
+                            var passenger = new Passenger
                             {
-                                passengerVM.BookingClassName = bookingClass.Description;
-                                passengerVM.BookingClassPriceFactor = bookingClass.PriceFactor;
-                            }
+                                FirstName = passengerVM.FirstName,
+                                LastName = passengerVM.LastName,
+                                Email = passengerVM.Email,
+                                Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
+                            };
 
-                            // Check if passenger with same name and email already exists
-                            var existingPassenger = await _dbContext.Passengers
-                                .FirstOrDefaultAsync(p =>
-                                    p.FirstName.ToLower() == passengerVM.FirstName.ToLower() &&
-                                    p.LastName.ToLower() == passengerVM.LastName.ToLower() &&
-                                    p.Email.ToLower() == passengerVM.Email.ToLower());
+                            // Add new passenger to database
+                            await _dbContext.Passengers.AddAsync(passenger);
+                            await _dbContext.SaveChangesAsync();
 
-                            if (existingPassenger == null)
+                            // Update the PassengerId in the ViewModel
+                            passengerVM.PassengerId = passenger.PassengerId;
+                        }
+                        else
+                        {
+                            // Check if date of birth is different and update if needed
+                            DateOnly newBirthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth);
+                            if (existingPassenger.Birthdate != newBirthdate)
                             {
-                                // Create new passenger entity
-                                var passenger = new Passenger
-                                {
-                                    FirstName = passengerVM.FirstName,
-                                    LastName = passengerVM.LastName,
-                                    Email = passengerVM.Email,
-                                    Birthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth)
-                                };
-
-                                // Add new passenger to database
-                                await _dbContext.Passengers.AddAsync(passenger);
+                                // Update the passenger's date of birth in the database
+                                existingPassenger.Birthdate = newBirthdate;
+                                _dbContext.Passengers.Update(existingPassenger);
                                 await _dbContext.SaveChangesAsync();
-
-                                // Update the PassengerId in the ViewModel
-                                passengerVM.PassengerId = passenger.PassengerId;
                             }
-                            else
-                            {
-                                // Check if date of birth is different and update if needed
-                                DateOnly newBirthdate = DateOnly.FromDateTime(passengerVM.DateOfBirth);
-                                if (existingPassenger.Birthdate != newBirthdate)
-                                {
-                                    // Update the passenger's date of birth in the database
-                                    existingPassenger.Birthdate = newBirthdate;
-                                    _dbContext.Passengers.Update(existingPassenger);
-                                    await _dbContext.SaveChangesAsync();
-                                }
 
-                                // Use the existing passenger's ID
-                                passengerVM.PassengerId = existingPassenger.PassengerId;
-                            }
+                            // Use the existing passenger's ID
+                            passengerVM.PassengerId = existingPassenger.PassengerId;
                         }
-
-                        // Update the passenger list in the cart
-                        routeItem.Passengers = selectedPassengers;
-
-                        // Recalculate the total price based on booking classes
-                        routeItem.TotalPrice = routeItem.GetTotalPrice();
-
-                        SaveCartToSession(cart);
-                        TempData["Message"] = "Passenger information saved successfully.";
-
-                        // Redirect to the Index action
-                        return RedirectToAction("Index", "ShoppingCart");
                     }
-                    else
-                    {
-                        TempData["Error"] = "Route not found in your basket.";
-                        return RedirectToAction("Index", "ShoppingCart");
-                    }
+
+                    // Update the passenger list in the cart
+                    routeItem.Passengers = selectedPassengers;
+
+                    // Mark as complete now that passenger information is added
+                    routeItem.IsComplete = true;
+
+                    // Recalculate the total price based on booking classes
+                    routeItem.TotalPrice = routeItem.GetTotalPrice();
+
+                    SaveCartToSession(cart);
+                    TempData["Message"] = "Route added to your basket with passenger information.";
+
+                    // Redirect to the Index action
+                    return RedirectToAction("Index", "ShoppingCart");
                 }
-                catch (Exception ex)
+                else
                 {
-                    TempData["Error"] = $"An error occurred: {ex.Message}";
+                    TempData["Error"] = "Route not found in your basket.";
                     return RedirectToAction("Index", "ShoppingCart");
                 }
             }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+        }
 
-
-
-            [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> SelectPassengers(int routeId, int passengerCount)
         {
             try
             {
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(routeId, null); // Pass routeId to prevent cleanup
                 var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
                 if (routeItem == null)
@@ -356,7 +357,7 @@ namespace FlightApp.Controllers
         [HttpPost]
         public IActionResult IncreasePassengerCount(int routeId)
         {
-            var cart = GetCartFromSession();
+            var cart = GetCartFromSession(routeId, null); // Pass routeId to prevent cleanup
             var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
             if (routeItem != null)
@@ -372,7 +373,7 @@ namespace FlightApp.Controllers
         [HttpPost]
         public IActionResult DecreasePassengerCount(int routeId)
         {
-            var cart = GetCartFromSession();
+            var cart = GetCartFromSession(routeId, null); // Pass routeId to prevent cleanup
             var routeItem = cart.RouteItems.FirstOrDefault(r => r.RouteId == routeId);
 
             if (routeItem != null && routeItem.PassengerCount > 1)
@@ -413,7 +414,7 @@ namespace FlightApp.Controllers
         }
 
 
-        private ShoppingCartVM GetCartFromSession()
+        private ShoppingCartVM GetCartFromSession(int? excludeRouteId = null, int? excludeFlightId = null)
         {
             try
             {
@@ -422,7 +423,14 @@ namespace FlightApp.Controllers
                 {
                     return new ShoppingCartVM();
                 }
-                return JsonSerializer.Deserialize<ShoppingCartVM>(cartJson) ?? new ShoppingCartVM();
+
+                var cart = JsonSerializer.Deserialize<ShoppingCartVM>(cartJson) ?? new ShoppingCartVM();
+
+                // Clean up incomplete items that have been in the cart too long
+                // But preserve the one being edited
+                CleanIncompleteCartItems(cart, excludeRouteId, excludeFlightId);
+
+                return cart;
             }
             catch (Exception ex)
             {
@@ -448,6 +456,7 @@ namespace FlightApp.Controllers
                 TempData["Error"] = $"Failed to save cart to session: {ex.Message}";
             }
         }
+
         [HttpPost]
         public IActionResult ClearCart()
         {
@@ -468,6 +477,7 @@ namespace FlightApp.Controllers
 
             return RedirectToAction("Index");
         }
+
         public IActionResult ProceedToCheckout()
         {
             return RedirectToAction("ConfirmBooking", "Booking");
@@ -493,11 +503,19 @@ namespace FlightApp.Controllers
                     return NotFound();
                 }
 
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(null, id); // Pass ID to exclude from cleanup
 
                 var existingFlightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == id);
                 if (existingFlightItem != null)
                 {
+                    // If flight exists but doesn't have passengers, redirect to select them
+                    if (existingFlightItem.Passengers == null || !existingFlightItem.Passengers.Any() ||
+                        existingFlightItem.Passengers.Count < existingFlightItem.PassengerCount)
+                    {
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = id });
+                    }
+
+                    TempData["Message"] = "This flight is already in your basket with passenger information.";
                     return RedirectToAction("Index");
                 }
 
@@ -529,13 +547,15 @@ namespace FlightApp.Controllers
                     Price = adjustedPrice,
                     TotalPrice = adjustedPrice,
                     Passengers = new List<PassengerVM>(),
-                    Notes = holidayNotes
+                    Notes = holidayNotes,
+                    IsComplete = false, // Mark as incomplete until passengers are added
+                    AddedToCartTime = DateTime.Now
                 };
 
                 cart.FlightItems.Add(flightCartItem);
                 SaveCartToSession(cart);
 
-                TempData["Message"] = "Flight added to your basket successfully.";
+                // Redirect to select passengers immediately
                 return RedirectToAction("SelectFlightPassengers", new { flightId = id });
             }
             catch (Exception ex)
@@ -549,7 +569,7 @@ namespace FlightApp.Controllers
         {
             try
             {
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(null, flightId); // Pass flightId to exclude this item from cleanup
                 var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
 
                 if (flightItem == null)
@@ -603,7 +623,7 @@ namespace FlightApp.Controllers
         {
             try
             {
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(null, flightId); // Pass flightId to prevent cleanup
                 var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
 
                 if (flightItem == null)
@@ -631,7 +651,7 @@ namespace FlightApp.Controllers
         {
             try
             {
-                var cart = GetCartFromSession();
+                var cart = GetCartFromSession(null, flightId); // Pass flightId to prevent cleanup
                 var flightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == flightId);
 
                 if (flightItem != null)
@@ -731,11 +751,14 @@ namespace FlightApp.Controllers
                     // Update the passenger list in the cart
                     flightItem.Passengers = selectedPassengers;
 
+                    // Mark as complete now that passenger information is added
+                    flightItem.IsComplete = true;
+
                     // Recalculate the total price based on booking classes
                     flightItem.TotalPrice = flightItem.GetTotalPrice();
 
                     SaveCartToSession(cart);
-                    TempData["Message"] = "Passenger information saved successfully.";
+                    TempData["Message"] = "Flight added to your basket with passenger information.";
 
                     // Redirect to the Index action
                     return RedirectToAction("Index", "ShoppingCart");
@@ -778,6 +801,34 @@ namespace FlightApp.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        private void CleanIncompleteCartItems(ShoppingCartVM cart, int? excludeRouteId = null, int? excludeFlightId = null)
+        {
+            if (cart == null) return;
+
+            // Count items before cleanup
+            int routesBefore = cart.RouteItems.Count;
+            int flightsBefore = cart.FlightItems.Count;
+
+            // Remove ALL incomplete route items EXCEPT the one being edited
+            cart.RouteItems.RemoveAll(r => !r.IsComplete && r.RouteId != excludeRouteId);
+
+            // Remove ALL incomplete flight items EXCEPT the one being edited
+            cart.FlightItems.RemoveAll(f => !f.IsComplete && f.FlightId != excludeFlightId);
+
+            // Count items after cleanup
+            int routesAfter = cart.RouteItems.Count;
+            int flightsAfter = cart.FlightItems.Count;
+
+            if (routesBefore > routesAfter || flightsBefore > flightsAfter)
+            {
+                int routesRemoved = routesBefore - routesAfter;
+                int flightsRemoved = flightsBefore - flightsAfter;
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"Cart cleanup: Removed {routesRemoved} incomplete routes and {flightsRemoved} incomplete flights");
+            }
         }
     }
 }
