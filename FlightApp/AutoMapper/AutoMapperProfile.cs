@@ -33,7 +33,10 @@ namespace FlightApp.AutoMapper
                         src => src.Route.RouteId))
                 .ForMember(dest => dest.BookingTime,
                 opts => opts.MapFrom(
-                    src => DateOnly.FromDateTime(src.BookingTime)));
+                    src => DateOnly.FromDateTime(src.BookingTime)))
+                .ForMember(dest => dest.Passengers,
+                opts => opts.MapFrom(
+                    src => src.Passengers));
 
 
             //City
@@ -88,6 +91,14 @@ namespace FlightApp.AutoMapper
                     src.Booking.Route.ArrivalCity :
                     (src.Booking.FlightId.HasValue && src.Booking.Flight != null ?
                     src.Booking.Flight.ArrivalCityNavigation :
+                    null)))
+                .ForMember(dest => dest.DepartureDate,
+                opts => opts.MapFrom(
+                    src =>
+                    src.Booking.RouteId.HasValue && src.Booking.Route != null ?
+                    src.Booking.Route.DepartureTime :
+                    (src.Booking.FlightId.HasValue && src.Booking.Flight != null ?
+                    src.Booking.Flight.DepartureTime :
                     null)));
 
 
@@ -122,6 +133,10 @@ namespace FlightApp.AutoMapper
                 .ForMember(dest => dest.ReviewScore,
                 opts => opts.MapFrom(
                     src => src.rawData.reviewScore));
+
+
+            //AspUser
+            CreateMap<AspNetUser, ASPNetUserVM>();
 
             // CreateMap<Source, Destination>();
             // CreateMap<Destination, Source>();

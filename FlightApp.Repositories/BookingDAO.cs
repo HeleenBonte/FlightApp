@@ -79,9 +79,18 @@ namespace FlightApp.Repositories
             }
         }
 
-        public Task UpdateAsync(Booking entity)
+        public async Task UpdateAsync(Booking entity)
         {
-            throw new NotImplementedException();
+            dbContext.Entry(entity).State = EntityState.Modified;
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
     }
 }

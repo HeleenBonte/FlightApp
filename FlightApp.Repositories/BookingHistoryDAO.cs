@@ -33,9 +33,18 @@ namespace FlightApp.Repositories
             }
         }
 
-        public Task DeleteAsync(BookingHistory entity)
+        public async Task DeleteAsync(BookingHistory entity)
         {
-            throw new NotImplementedException();
+            _dbContext.Entry(entity).State = EntityState.Deleted;
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
         public Task<BookingHistory?> FindByIdAsync(int Id)
@@ -67,6 +76,32 @@ namespace FlightApp.Repositories
                 .Include(bh => bh.Booking.Passengers)
                 .OrderByDescending(bh => bh.Booking.BookingTime)
                 .ToListAsync();
+        }
+        public async Task<BookingHistory> GetAllByBookingIdAsync(int bookingId)
+        {
+            try
+            {
+                return await _dbContext.BookingHistories
+                    .Where(bh => bh.BookingId == bookingId)
+                    .Include(bh => bh.Booking)
+                        .ThenInclude(b => b.Route)
+                            .ThenInclude(r => r.DepartureCity)
+                    .Include(bh => bh.Booking)
+                        .ThenInclude(b => b.Route)
+                            .ThenInclude(r => r.ArrivalCity)
+                    .Include(bh => bh.Booking)
+                        .ThenInclude(b => b.Flight)
+                            .ThenInclude(f => f.DepartureCityNavigation)
+                    .Include(bh => bh.Booking)
+                        .ThenInclude(b => b.Flight)
+                            .ThenInclude(f => f.ArrivalCityNavigation)
+                            .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error DAO");
+                throw;
+            }
         }
 
         public Task UpdateAsync(BookingHistory entity)

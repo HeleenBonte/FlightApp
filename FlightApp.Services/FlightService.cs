@@ -25,6 +25,10 @@ namespace FlightApp.Services
             return await _flightDAO.GetFlightsByCitiesID(arrivalCityId, departureCityId, departureDate);
         }
 
+        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId)
+        {
+            return await _flightDAO.GetFlightsByCitiesID(arrivalCityId, departureCityId);
+        }
 
         public Task AddAsync(Flight entity) => throw new NotImplementedException();
         public Task DeleteAsync(Flight entity) => throw new NotImplementedException();

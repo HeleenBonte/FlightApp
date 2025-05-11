@@ -56,11 +56,27 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning text-dark">Pending</span>
+                                            <span class="badge bg-warning text-dark">Refunded</span>
                                         }
                                     </td>
                                     <td>
-                                        @Html.ActionLink("Delete", "Delete", new { id = item.BookingId})
+                                        @if (!item.PaymentStatus)
+                                        {
+                                            <span class="badge bg-warning text-dark">Canceled</span>
+                                        }
+                                        else{
+                                            @if ((DateOnly.FromDateTime(item.DepartureDate).AddDays(-7)) >= DateOnly.FromDateTime(DateTime.Now))
+                                            {
+                                             <a asp-controller="Account" asp-action="Delete" asp-route-id="@item.BookingId"
+                                                class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i><strong> Cancel Booking</strong>
+                                             </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Non-Cancellable</span>
+                                            }
+                                        }
                                     </td>
                                 </tr>
                             }

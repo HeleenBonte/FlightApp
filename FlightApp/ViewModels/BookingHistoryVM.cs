@@ -14,4 +14,5 @@ public class BookingHistoryVM
     public int? FlightId { get; set; }
     public bool IsDirectFlight => FlightId.HasValue && !RouteId.HasValue;
     public string BookingType => IsDirectFlight ? "Direct Flight" : "Route with Connections";
+    public DateTime DepartureDate { get; set; }
 }

@@ -11,5 +11,6 @@ namespace FlightApp.Repositories.Interfaces
     public interface IBookingHistoryDAO : IDAO<BookingHistory>
     {
          Task<IEnumerable<BookingHistory>?> GetAllByUserIdAsync(string userId);
+        Task<BookingHistory> GetAllByBookingIdAsync(int bookingId);
     }
 }

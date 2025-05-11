@@ -1,4 +1,6 @@
-﻿namespace FlightApp.ViewModels
+﻿using FlightApp.Domains.EntitiesDB;
+
+namespace FlightApp.ViewModels
 {
     public class BookingVM
     {
@@ -7,7 +9,7 @@
         public DateOnly BookingTime { get; set; }
         public bool PaymentStatus { get; set; }
         public int RouteId { get; set; }
-        public IEnumerable<PassengerVM>? Passengers { get; set; }
-
+        public int FlightId { get; set; }
+        public IEnumerable<Passenger>? Passengers { get; set; }
     }
 }
