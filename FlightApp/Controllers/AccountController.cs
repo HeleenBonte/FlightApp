@@ -18,13 +18,15 @@ namespace FlightApp.Controllers
         private readonly IMapper _mapper;
         private readonly IHotelService _hotelService;
         private readonly IService <Booking> _bookingService;
-        public AccountController(UserManager<ApplicationUser> userManager, IBookingHistoryService bookingHistoryService, IMapper mapper, IHotelService hotelService, IService<Booking> bookingService)
+        private readonly ITicketService _ticketService;
+        public AccountController(UserManager<ApplicationUser> userManager, IBookingHistoryService bookingHistoryService, IMapper mapper, IHotelService hotelService, IService<Booking> bookingService, ITicketService ticketService)
         {
             _userManager = userManager;
             _bookingHistoryService = bookingHistoryService;
             _mapper = mapper;
             _hotelService = hotelService;
             _bookingService = bookingService;
+            _ticketService = ticketService;
         }
         public async Task<IActionResult> Index()
         {
@@ -86,8 +88,10 @@ namespace FlightApp.Controllers
                 return NotFound();
             }
             var bookingVM = _mapper.Map<BookingVM>(booking);
+           // bookingVM.UserName = booking.Passengers.First().FirstName + " " + booking.Passengers.First().LastName;
             return View(bookingVM);
         }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int? id)
@@ -98,12 +102,24 @@ namespace FlightApp.Controllers
             }
             try
             {
+                //remove tickets
+                var tickets = await _ticketService.GetTicketsByBookingIdAsync(Convert.ToInt32(id));
+                if (tickets == null)
+                {
+                    return NotFound();
+                }
+                foreach (var ticket in tickets)
+                {
+                    await _ticketService.DeleteAsync(ticket);
+                }
+                //update booking
                 Booking? booking = await _bookingService.FindByIdAsync(Convert.ToInt32(id));
                 if (booking == null)
                 {
                     return NotFound();
                 }
-                await _bookingService.DeleteAsync(booking);
+                booking.PaymentStatus = false;
+                await _bookingService.UpdateAsync(booking);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)

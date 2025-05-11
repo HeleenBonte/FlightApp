@@ -27,6 +27,8 @@ namespace FlightApp.Services
         public async Task<Booking?> FindByIdAsync(int id) {
         return await _bookingDAO.FindByIdAsync(id);
         }
-        public Task UpdateAsync(Booking entity) => throw new NotImplementedException();
+        public async Task UpdateAsync(Booking entity){
+            await _bookingDAO.UpdateAsync(entity);
+        }
     }
 }

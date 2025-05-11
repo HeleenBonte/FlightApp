@@ -21,9 +21,9 @@ namespace FlightApp.Services
             await _bookingHistoryDAO.AddAsync(entity);
         }
 
-        public Task DeleteAsync(BookingHistory entity)
+        public async Task DeleteAsync(BookingHistory entity)
         {
-            throw new NotImplementedException();
+            await _bookingHistoryDAO.DeleteAsync(entity);
         }
 
         public Task<BookingHistory?> FindByIdAsync(int Id)
@@ -39,6 +39,10 @@ namespace FlightApp.Services
         public async Task<IEnumerable<BookingHistory>> GetAllByUserIdAsync(string userId)
         {
             return await _bookingHistoryDAO.GetAllByUserIdAsync(userId);
+        }
+        public async Task<BookingHistory> GetAllByBookingIdAsync(int bookingId)
+        {
+            return await _bookingHistoryDAO.GetAllByBookingIdAsync(bookingId);
         }
 
         public Task UpdateAsync(BookingHistory entity)

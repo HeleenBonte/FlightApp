@@ -10,5 +10,6 @@ namespace FlightApp.Services.Interfaces
     public interface IBookingHistoryService : IService<BookingHistory>
     {
         Task<IEnumerable<BookingHistory>?> GetAllByUserIdAsync(string userId);
+        Task<BookingHistory> GetAllByBookingIdAsync(int bookingId);
     }
 }

@@ -88,6 +88,9 @@ builder.Services.AddTransient<IHotelService, HotelService>();
 builder.Services.AddTransient<ITicketDAO, TicketDAO>();
 builder.Services.AddTransient<ITicketService, TicketService>();
 
+builder.Services.AddTransient<IDAO<AspNetUser>, AspUserDAO>();
+builder.Services.AddTransient<IService<AspNetUser>, AspUserService>();
+
 
 
 builder.Services.AddAutoMapper(typeof(Program));
@@ -99,6 +102,30 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "FlightApp API",
+        Version = "version 1",
+        Description = "An API to perform Flight operations",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Zephyrus",
+            Email = "ZephyrusAirlines@gmail.com",
+            Url = new Uri("https://vives.be")
+        },
+        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        {
+            Name = "Flight API LICX",
+            Url = new Uri("https://example.com.license"),
+        }
+    });
+});
+
 
 var app = builder.Build();
 
@@ -113,6 +140,18 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+var swaggerOptions = new FlightApp.Options.SwaggerOptions();
+builder.Configuration.GetSection(nameof(FlightApp.Options.SwaggerOptions)).Bind(swaggerOptions);
+
+app.UseSwagger(option => { option.RouteTemplate = swaggerOptions.JsonRoute; });
+
+app.UseSwaggerUI(option =>
+{
+    option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
+});
+
+app.UseSwagger();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

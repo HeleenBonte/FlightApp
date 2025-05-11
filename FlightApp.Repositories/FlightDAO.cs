@@ -90,5 +90,21 @@ namespace FlightApp.Repositories
                 throw;
             }
         }
+        public async Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId)
+        {
+            try
+            {
+                return await dbContext.Flights
+                    .Include(f => f.ArrivalCityNavigation)
+                    .Include(f => f.DepartureCityNavigation)
+                    .Where(f => f.ArrivalCity == arrivalCityId && f.DepartureCity == departureCityId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
+        }
     }
 }

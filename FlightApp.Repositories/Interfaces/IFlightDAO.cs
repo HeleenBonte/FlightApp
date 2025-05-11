@@ -11,6 +11,7 @@ namespace FlightApp.Repositories.Interfaces
     public interface IFlightDAO : IDAO<Flight>
     {
         Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate);
+        Task<IEnumerable<Flight>> GetFlightsByCitiesID(int arrivalCityId, int departureCityId);
 
     }
 }
