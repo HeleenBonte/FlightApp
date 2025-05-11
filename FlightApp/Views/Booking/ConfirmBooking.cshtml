@@ -114,10 +114,7 @@
                                         <ul>
                                             @foreach (var passenger in flight.Passengers)
                                             {
-                                                <li>
-                                                    @passenger.FirstName @passenger.LastName - @passenger.BookingClassName
-                                                    (@(passenger.BookingClassPriceFactor.ToString("P0")) of base price)
-                                                </li>
+                                                <li>@passenger.FirstName @passenger.LastName - @passenger.BookingClassName</li>
                                             }
                                         </ul>
                                     </div>

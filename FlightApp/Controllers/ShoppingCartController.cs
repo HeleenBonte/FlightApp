@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
+using FlightApp.Services.Interfaces;
 
 namespace FlightApp.Controllers
 {
@@ -14,11 +15,16 @@ namespace FlightApp.Controllers
     {
         private readonly FlightsDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IHolidayPriceService _holidayPriceService;
 
-        public ShoppingCartController(FlightsDbContext dbContext, IMapper mapper)
+        public ShoppingCartController(
+            FlightsDbContext dbContext,
+            IMapper mapper,
+            IHolidayPriceService holidayPriceService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _holidayPriceService = holidayPriceService;
         }
 
         [HttpGet]
@@ -82,7 +88,7 @@ namespace FlightApp.Controllers
                     Passengers = new List<PassengerVM>()
                 };
 
-                // Fetch flight details and calculate total price
+                // Fetch flight details and calculate total price with holiday factor
                 foreach (var flight in route.Flights)
                 {
                     var flightDetail = await _dbContext.Flights
@@ -93,21 +99,33 @@ namespace FlightApp.Controllers
                     if (flightDetail != null)
                     {
                         var flightVM = _mapper.Map<FlightVM>(flightDetail);
-                        routeCartItem.Flights.Add(flightVM);
-                        routeCartItem.TotalPrice += flightDetail.Price;
-                    }
-                }
 
-                if (routeCartItem.Flights.Count == 2)
-                {
-                    var flights = routeCartItem.Flights.ToList();
-                    routeCartItem.Layover1 = flights[1].ArrivalCity;
-                }
-                else if (routeCartItem.Flights.Count == 3)
-                {
-                    var flights = routeCartItem.Flights.ToList();
-                    routeCartItem.Layover1 = flights[2].ArrivalCity;
-                    routeCartItem.Layover2 = flights[1].ArrivalCity;
+                        // Apply holiday price factor if departure time is set
+                        if (flightDetail.DepartureTime.HasValue && flightDetail.Price > 0)
+                        {
+                            double holidayFactor = await _holidayPriceService.GetHolidayPriceFactor(
+                                flightDetail.DepartureCity,
+                                flightDetail.DepartureTime.Value);
+
+                            // Apply holiday factor if it's different from 1.0
+                            if (Math.Abs(holidayFactor - 1.0) > 0.01)
+                            {
+                                flightVM.Price = flightDetail.Price * holidayFactor;
+                                flightVM.Notes = $"Holiday pricing applied (x{holidayFactor:F2})";
+                            }
+                            else
+                            {
+                                flightVM.Price = flightDetail.Price;
+                            }
+                        }
+                        else
+                        {
+                            flightVM.Price = flightDetail.Price;
+                        }
+
+                        routeCartItem.Flights.Add(flightVM);
+                        routeCartItem.TotalPrice += flightVM.Price ?? 0;
+                    }
                 }
 
                 cart.RouteItems.Add(routeCartItem);
@@ -454,6 +472,7 @@ namespace FlightApp.Controllers
         {
             return RedirectToAction("ConfirmBooking", "Booking");
         }
+
         [HttpGet]
         public async Task<IActionResult> AddFlightToCart(int id)
         {
@@ -467,9 +486,9 @@ namespace FlightApp.Controllers
                 }
 
                 var flight = await _dbContext.Flights
-                    .Include(f => f.DepartureCityNavigation)
-                    .Include(f => f.ArrivalCityNavigation)
-                    .FirstOrDefaultAsync(f => f.FlightId == id);
+                .Include(f => f.DepartureCityNavigation)
+                .Include(f => f.ArrivalCityNavigation)
+                .FirstOrDefaultAsync(f => f.FlightId == id);
 
                 if (flight == null)
                 {
@@ -487,14 +506,34 @@ namespace FlightApp.Controllers
                         existingFlightItem.Passengers.Count < existingFlightItem.PassengerCount)
                     {
                         // Redirect to select passengers if they haven't been selected yet
-                        return RedirectToAction("SelectFlightPassengers", new { flightId = id });
+                        return RedirectToAction("SelectFlightPassengers", new { flightId = id }); // FIXED: Redirect to passenger selection instead of Index
                     }
 
                     TempData["Message"] = "This flight is already in your basket.";
                     return RedirectToAction("Index");
                 }
 
-                // Create new flight cart item
+                // Apply holiday price factor
+                double basePrice = flight.Price;
+                double holidayFactor = 1.0;
+                string? holidayNotes = null;
+
+                if (flight.DepartureTime.HasValue)
+                {
+                    holidayFactor = await _holidayPriceService.GetHolidayPriceFactor(
+                        flight.DepartureCity,
+                        flight.DepartureTime.Value);
+
+                    if (Math.Abs(holidayFactor - 1.0) > 0.01)
+                    {
+                        holidayNotes = $"Holiday pricing applied (x{holidayFactor:F2})";
+                    }
+                }
+
+                // Calculate adjusted price
+                double adjustedPrice = basePrice * holidayFactor;
+
+                // Create new flight cart item with holiday price factor applied
                 var flightCartItem = new FlightCartItemVM
                 {
                     FlightId = flight.FlightId,
@@ -502,9 +541,10 @@ namespace FlightApp.Controllers
                     DepartureCity = flight.DepartureCityNavigation?.CityName,
                     ArrivalCity = flight.ArrivalCityNavigation?.CityName,
                     ArrivalTime = flight.ArrivalTime,
-                    Price = flight.Price,
-                    TotalPrice = flight.Price,
-                    Passengers = new List<PassengerVM>()
+                    Price = adjustedPrice,
+                    TotalPrice = adjustedPrice,
+                    Passengers = new List<PassengerVM>(),
+                    Notes = holidayNotes
                 };
 
                 cart.FlightItems.Add(flightCartItem);

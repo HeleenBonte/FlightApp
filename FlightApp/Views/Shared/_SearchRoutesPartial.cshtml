@@ -6,13 +6,7 @@
         <div class="search-results">
             @foreach (var route in Model.routes)
             {
-                // Calculate the price based on flights in the route
-                var calculatedPrice = route.Flights.Sum(f => f.Price ?? 0);
-                // Set the price property for future use with explicit cast to decimal
-                if (route.Price == 0)
-                {
-                    route.Price = Convert.ToDecimal(calculatedPrice);
-                }
+                // Price is now calculated in the controller with holiday factors applied
 
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
@@ -40,7 +34,26 @@
                                 </div>
                             </div>
 
-                            <!-- Layover information -->
+                            <!-- Holiday price factor indicators -->
+                            @{
+                                var flightsWithHolidayPricing = route.Flights.Where(f => !string.IsNullOrEmpty(f.Notes)).ToList();
+                            }
+                            @if (flightsWithHolidayPricing.Any())
+                            {
+                                <div class="col-12 mb-2">
+                                    <div class="alert alert-info mb-0">
+                                        <strong><i class="bi bi-info-circle me-2"></i>Holiday Pricing Applied:</strong>
+                                        <ul class="mb-0 mt-1">
+                                            @foreach (var flight in flightsWithHolidayPricing)
+                                            {
+                                                <li>@flight.DepartureCity to @flight.ArrivalCity: @flight.Notes</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Layover information (rest of code stays the same) -->
                             @if (!string.IsNullOrEmpty(route.Layover1) || !string.IsNullOrEmpty(route.Layover2))
                             {
                                 <div class="col-12 mb-2">
@@ -79,7 +92,7 @@
                                 </div>
                             }
 
-                            <!-- Date and action button -->
+                            <!-- Date and action button (unchanged) -->
                             <div class="col-8">
                                 <p class="mb-0">
                                     <strong>Date:</strong> @route.DepartureTime?.ToString("dd MMM yyyy")
@@ -116,4 +129,4 @@
             }
         </div>
     }
-    
+</div>

@@ -35,7 +35,7 @@ else
             <div class="card-body">
                 <div class="row">
                     <!-- Routes -->
-                    @if(Model.RouteItems.Any())
+                    @if (Model.RouteItems.Any())
                     {
                         <div class="col-md-12 mb-4">
                             <h5>Routes</h5>
@@ -92,10 +92,31 @@ else
                                                         </td>
                                                     </tr>
                                                 }
+
+                                                <!-- Show holiday price notes if any flight has them -->
+                                                var flightsWithNotes = item.Flights.Where(f => !string.IsNullOrEmpty(f.Notes)).ToList();
+
+                                                @if (flightsWithNotes.Any())
+                                                {
+                                                    <tr class="table-info">
+                                                        <td colspan="8">
+                                                            <div class="small">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                <strong>Holiday pricing applied:</strong>
+                                                                @foreach (var flight in flightsWithNotes)
+                                                                {
+                                                                    <span class="ms-2 badge bg-info text-dark">
+                                                                        @flight.DepartureCity to @flight.ArrivalCity: @flight.Notes
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
                                             else
                                             {
-                                                // No passengers assigned yet, show default row
+                                                <!-- No passengers assigned yet, show default row -->
                                                 <tr>
                                                     <td>@item.PassengerCount</td>
                                                     <td>@item.DepartureTime.ToString("dd/MM/yyyy HH:mm")</td>
@@ -111,6 +132,26 @@ else
                                                         </form>
                                                     </td>
                                                 </tr>
+
+                                                <!-- Show holiday price notes if any flight has them -->
+                                                var flightsWithNotes = item.Flights.Where(f => !string.IsNullOrEmpty(f.Notes)).ToList();
+                                                @if (flightsWithNotes.Any())
+                                                {
+                                                    <tr class="table-info">
+                                                        <td colspan="8">
+                                                            <div class="small">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                <strong>Holiday pricing applied:</strong>
+                                                                @foreach (var flight in flightsWithNotes)
+                                                                {
+                                                                    <span class="ms-2 badge bg-info text-dark">
+                                                                        @flight.DepartureCity to @flight.ArrivalCity: @flight.Notes
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
                                         }
                                     </tbody>
@@ -120,7 +161,7 @@ else
                     }
 
                     <!-- Flights -->
-                    @if(Model.FlightItems.Any())
+                    @if (Model.FlightItems.Any())
                     {
                         <div class="col-md-12 mb-4">
                             <h5>Direct Flights</h5>
@@ -177,10 +218,23 @@ else
                                                         </td>
                                                     </tr>
                                                 }
+
+                                                <!-- Display holiday pricing info if present -->
+                                                @if (!string.IsNullOrEmpty(item.Notes))
+                                                {
+                                                    <tr class="table-info">
+                                                        <td colspan="8">
+                                                            <div class="small">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                <strong>@item.Notes</strong>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
                                             else
                                             {
-                                                // No passengers assigned yet, show default row
+                                                <!-- No passengers assigned yet, show default row -->
                                                 <tr>
                                                     <td>@item.PassengerCount</td>
                                                     <td>@(item.DepartureTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
@@ -189,7 +243,7 @@ else
                                                     <td>@(item.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
                                                     <td>@(item.GetTotalPrice().ToString("C"))</td>
                                                     <td>
-                                                        @if(item.Passengers != null && item.Passengers.Any())
+                                                        @if (item.Passengers != null && item.Passengers.Any())
                                                         {
                                                             <span class="badge bg-success">Selected</span>
                                                         }
@@ -207,6 +261,19 @@ else
                                                         </form>
                                                     </td>
                                                 </tr>
+
+                                                <!-- Display holiday pricing info if present -->
+                                                @if (!string.IsNullOrEmpty(item.Notes))
+                                                {
+                                                    <tr class="table-info">
+                                                        <td colspan="8">
+                                                            <div class="small">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                <strong>@item.Notes</strong>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
                                             }
                                         }
                                     </tbody>

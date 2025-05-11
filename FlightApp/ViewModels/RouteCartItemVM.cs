@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FlightApp.ViewModels
 {
@@ -11,11 +12,12 @@ namespace FlightApp.ViewModels
         public string ArrivalCity { get; set; }
         public string Layover1 { get; set; }
         public string Layover2 { get; set; }
-        public DateTime? ArrivalTime { get; set; } // Added property for ArrivalTime
+        public DateTime? ArrivalTime { get; set; }
         public List<FlightVM> Flights { get; set; } = new List<FlightVM>();
         public List<PassengerVM> Passengers { get; set; } = new List<PassengerVM>();
-        public int PassengerCount { get; set; } = 1; // Default to 1 passenger
+        public int PassengerCount { get; set; } = 1;
         public double TotalPrice { get; set; }
+        public string? Notes { get; set; } // Added for holiday pricing info
 
         public double GetTotalPrice()
         {
