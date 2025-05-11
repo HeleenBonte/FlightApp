@@ -1,11 +1,14 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
     ViewData["Title"] = "Zephyrus";
 }
 
 <div class="text-center">
-    <img src="~/images/ZephyrusLogo.jpg" alt="Zephyrus Logo"/>
-    <h1 class="display-4">Welkom op Zephyrus Airlines</h1>
-    <p>Dit is een website gemaakt in opdracht van Vives Hogeschool Kortrijk.</p>
-    <p>Deze website simuleert een luchtvaartmaatschappij waarop je vluchten kan boeken en boekingen kan controleren en eventueel annuleren.</p>
-    <p>Je kan hier dus GEEN echte vluchten boeken.</p>
+    <img src="~/images/ZephyrusLogo.jpg" alt="Zephyrus Logo" />
+    <h1 class="display-4">@Localizer["Welcome"]</h1>
+    <p>@Localizer["Intro"]</p>
+    <p>@Localizer["Description"]</p>
+    <p>@Localizer["Disclaimer"]</p>
 </div>
