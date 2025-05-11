@@ -2,13 +2,13 @@
 @inject IViewLocalizer Localizer
 
 @{
-    ViewData["Title"] = "Zephyrus";
+    ViewData["Title"] = @Localizer["PageTitle"];
 }
 
 <div class="text-center">
     <img src="~/images/ZephyrusLogo.jpg" alt="Zephyrus Logo" />
-    <h1 class="display-4">@Localizer["Welcome"]</h1>
+    <h1 class="display-4">@Localizer["WelcomeMessage"]</h1>
+    <p>@Localizer["AboutUs"]</p>
     <p>@Localizer["Intro"]</p>
-    <p>@Localizer["Description"]</p>
-    <p>@Localizer["Disclaimer"]</p>
+    <p>@Localizer["Warning"]</p>
 </div>

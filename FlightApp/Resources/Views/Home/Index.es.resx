@@ -117,16 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Description" xml:space="preserve">
-    <value>Este sitio web simula una aerolínea donde puedes reservar vuelos y verificar o cancelar reservas.</value>
-  </data>
-  <data name="Disclaimer" xml:space="preserve">
-    <value>NO PUEDES reservar vuelos reales aquí.</value>
+  <data name="AboutUs" xml:space="preserve">
+    <value>Este es un sitio web creado para la Universidad Vives de Kortrijk.</value>
   </data>
   <data name="Intro" xml:space="preserve">
-    <value>Este sitio web fue creado para la Universidad de Ciencias Aplicadas de Vives en Kortrijk.</value>
+    <value>Este sitio web simula una aerolínea donde puede reservar vuelos y verificar y posiblemente cancelar reservas.</value>
   </data>
-  <data name="Welcome" xml:space="preserve">
+  <data name="PageTitle" xml:space="preserve">
+    <value>Zephyrus</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>NO PUEDE reservar vuelos reales aquí.</value>
+  </data>
+  <data name="WelcomeMessage" xml:space="preserve">
     <value>Bienvenido a Zephyrus Airlines</value>
   </data>
 </root>
