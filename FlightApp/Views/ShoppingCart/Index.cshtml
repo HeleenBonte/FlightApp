@@ -81,7 +81,7 @@ else
                                                                 // Calculate price for this booking class
                                                                 double adjustedPrice = item.Flights.Sum(f => f.Price ?? 0) * bookingClass.BookingClassPriceFactor * count;
                                                             }
-                                                            @adjustedPrice.ToString("C")
+                                                            €@adjustedPrice.ToString("0.00")
                                                         </td>
                                                         <td>@bookingClass.BookingClassName</td>
                                                         <td>
@@ -123,7 +123,7 @@ else
                                                     <td>@item.DepartureCity</td>
                                                     <td>@item.ArrivalCity</td>
                                                     <td>@(item.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                                    <td>@(item.GetTotalPrice().ToString("C"))</td>
+                                                    <td>€@(item.GetTotalPrice().ToString("0.00"))</td>
                                                     <td>Not specified</td>
                                                     <td>
                                                         <form asp-action="RemoveRouteFromCart" asp-controller="ShoppingCart" method="post">
@@ -207,7 +207,7 @@ else
                                                                 // Calculate price for this booking class
                                                                 double adjustedPrice = item.Price * bookingClass.BookingClassPriceFactor * count;
                                                             }
-                                                            @adjustedPrice.ToString("C")
+                                                            €@adjustedPrice.ToString("0.00")
                                                         </td>
                                                         <td>@bookingClass.BookingClassName</td>
                                                         <td>
@@ -241,7 +241,7 @@ else
                                                     <td>@item.DepartureCity</td>
                                                     <td>@item.ArrivalCity</td>
                                                     <td>@(item.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                                    <td>@(item.GetTotalPrice().ToString("C"))</td>
+                                                    <td>€@(item.GetTotalPrice().ToString("0.00"))</td>
                                                     <td>
                                                         @if (item.Passengers != null && item.Passengers.Any())
                                                         {
@@ -286,7 +286,7 @@ else
                 <div class="mt-4 pt-2 border-top">
                     <div class="row">
                         <div class="col-md-6">
-                            <h4>Total: @Model.ComputeTotalValue().ToString("C")</h4>
+                            <h4>Total: €@Model.ComputeTotalValue().ToString("0.00")</h4>
                         </div>
                         <div class="col-md-6 text-end">
                             <div class="d-flex justify-content-end">
