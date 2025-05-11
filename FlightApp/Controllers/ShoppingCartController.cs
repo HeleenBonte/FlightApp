@@ -478,17 +478,15 @@ namespace FlightApp.Controllers
         {
             try
             {
-                // Ensure authentication state is preserved
                 if (!User.Identity?.IsAuthenticated ?? false)
                 {
-                    // If accessing directly and not authenticated, redirect to login
                     return RedirectToPage("/Account/Login", new { area = "Identity" });
                 }
 
                 var flight = await _dbContext.Flights
-                .Include(f => f.DepartureCityNavigation)
-                .Include(f => f.ArrivalCityNavigation)
-                .FirstOrDefaultAsync(f => f.FlightId == id);
+                    .Include(f => f.DepartureCityNavigation)
+                    .Include(f => f.ArrivalCityNavigation)
+                    .FirstOrDefaultAsync(f => f.FlightId == id);
 
                 if (flight == null)
                 {
@@ -497,23 +495,12 @@ namespace FlightApp.Controllers
 
                 var cart = GetCartFromSession();
 
-                // Check if flight is already in cart
                 var existingFlightItem = cart.FlightItems.FirstOrDefault(f => f.FlightId == id);
                 if (existingFlightItem != null)
                 {
-                    // Check if passengers have been selected for this flight
-                    if (existingFlightItem.Passengers == null || !existingFlightItem.Passengers.Any() ||
-                        existingFlightItem.Passengers.Count < existingFlightItem.PassengerCount)
-                    {
-                        // Redirect to select passengers if they haven't been selected yet
-                        return RedirectToAction("SelectFlightPassengers", new { flightId = id }); // FIXED: Redirect to passenger selection instead of Index
-                    }
-
-                    TempData["Message"] = "This flight is already in your basket.";
                     return RedirectToAction("Index");
                 }
 
-                // Apply holiday price factor
                 double basePrice = flight.Price;
                 double holidayFactor = 1.0;
                 string? holidayNotes = null;
@@ -530,10 +517,8 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                // Calculate adjusted price
                 double adjustedPrice = basePrice * holidayFactor;
 
-                // Create new flight cart item with holiday price factor applied
                 var flightCartItem = new FlightCartItemVM
                 {
                     FlightId = flight.FlightId,

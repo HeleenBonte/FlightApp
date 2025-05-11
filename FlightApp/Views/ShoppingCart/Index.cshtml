@@ -219,14 +219,17 @@ else
                                                     </tr>
                                                 }
 
-                                                <!-- Display holiday pricing info if present -->
+                                                <!-- Show holiday price notes if any -->
                                                 @if (!string.IsNullOrEmpty(item.Notes))
                                                 {
                                                     <tr class="table-info">
                                                         <td colspan="8">
                                                             <div class="small">
                                                                 <i class="bi bi-info-circle me-1"></i>
-                                                                <strong>@item.Notes</strong>
+                                                                <strong>Holiday pricing applied:</strong>
+                                                                <span class="ms-2 badge bg-info text-dark">
+                                                                    @item.DepartureCity to @item.ArrivalCity: @item.Notes
+                                                                </span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -262,14 +265,17 @@ else
                                                     </td>
                                                 </tr>
 
-                                                <!-- Display holiday pricing info if present -->
+                                                <!-- Show holiday price notes if any -->
                                                 @if (!string.IsNullOrEmpty(item.Notes))
                                                 {
                                                     <tr class="table-info">
                                                         <td colspan="8">
                                                             <div class="small">
                                                                 <i class="bi bi-info-circle me-1"></i>
-                                                                <strong>@item.Notes</strong>
+                                                                <strong>Holiday pricing applied:</strong>
+                                                                <span class="ms-2 badge bg-info text-dark">
+                                                                    @item.DepartureCity to @item.ArrivalCity: @item.Notes
+                                                                </span>
                                                             </div>
                                                         </td>
                                                     </tr>
