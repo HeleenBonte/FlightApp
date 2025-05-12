@@ -8,5 +8,6 @@ namespace FlightApp.Services.Interfaces
     public interface ITicketService : IService<Ticket>
     {
         Task<IEnumerable<Ticket>> GetTicketsByBookingIdAsync(int bookingId);
+        Task<int> GetCountByFlightIDAsync(int flightID);
     }
 }

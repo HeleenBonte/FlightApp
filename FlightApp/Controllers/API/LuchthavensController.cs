@@ -11,7 +11,6 @@ namespace FlightApp.Controllers.API
     [ApiController]
     public class LuchthavensController : ControllerBase
     {
-        // /api/luchthavens geeft een overzicht van alle beschikbare luchthavens in het netwerk
         private IService<City> _cityService;
         private readonly IMapper _mapper;
 

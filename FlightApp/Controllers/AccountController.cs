@@ -34,11 +34,8 @@ namespace FlightApp.Controllers
             if (userId != null)
             {
                 try { 
-                // User is logged in, redirect to the desired page
                 var history = await _bookingHistoryService.GetAllByUserIdAsync(userId);
                 List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
-
-                    // Handle case with no bookings
                     if (!bookingHistoryVMs.Any())
                     {
                         BookingHistoryHotelListVM emptyModel = new BookingHistoryHotelListVM
@@ -49,7 +46,6 @@ namespace FlightApp.Controllers
                         return View(emptyModel);
                     }
 
-                    // Get hotel recommendations for the first booking's arrival city
                     var firstBookingWithCity = bookingHistoryVMs.FirstOrDefault(b => b.ArrivalCityData?.ApiId != null);
                     List<HotelVM> hotels = new List<HotelVM>();
 
@@ -88,7 +84,6 @@ namespace FlightApp.Controllers
                 return NotFound();
             }
             var bookingVM = _mapper.Map<BookingVM>(booking);
-           // bookingVM.UserName = booking.Passengers.First().FirstName + " " + booking.Passengers.First().LastName;
             return View(bookingVM);
         }
 
@@ -102,7 +97,6 @@ namespace FlightApp.Controllers
             }
             try
             {
-                //remove tickets
                 var tickets = await _ticketService.GetTicketsByBookingIdAsync(Convert.ToInt32(id));
                 if (tickets == null)
                 {
@@ -112,7 +106,6 @@ namespace FlightApp.Controllers
                 {
                     await _ticketService.DeleteAsync(ticket);
                 }
-                //update booking
                 Booking? booking = await _bookingService.FindByIdAsync(Convert.ToInt32(id));
                 if (booking == null)
                 {
@@ -129,12 +122,9 @@ namespace FlightApp.Controllers
             }
         }
 
-
-
         public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
         {
             var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
-            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
             lstHotelIds = lstHotelIds.Slice(0, 3);
             List<HotelVM> hotels = new List<HotelVM>();
             foreach (var hotelId in lstHotelIds)

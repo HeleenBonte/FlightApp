@@ -10,7 +10,6 @@ namespace FlightApp.AutoMapper
     {
         public AutoMapperProfile()
         {
-            //Flight
             CreateMap<Flight, FlightVM>().ForMember(dest => dest.DepartureCity, 
                 opts => opts.MapFrom(
                     src => src.DepartureCityNavigation.CityName))
@@ -21,9 +20,6 @@ namespace FlightApp.AutoMapper
                 opts => opts.MapFrom(
                     src => src.Tickets));
 
-
-
-            //Booking
             CreateMap<Booking, BookingVM>()
                 .ForMember(dest => dest.UserName,
                     opts => opts.MapFrom(
@@ -38,11 +34,8 @@ namespace FlightApp.AutoMapper
                 opts => opts.MapFrom(
                     src => src.Passengers));
 
-
-            //City
             CreateMap<City, CityVM>();
 
-            //Route
             CreateMap<Domains.EntitiesDB.Route, RouteVM>().ForMember(dest => dest.DepartureCity,
                 opts => opts.MapFrom(
                     src => src.DepartureCity.CityName))
@@ -53,8 +46,6 @@ namespace FlightApp.AutoMapper
                 opts => opts.MapFrom(
                     src => src.Flights));
 
-
-            //RouteFlightBridge
             CreateMap<RouteFlightBridge, RouteFlightBridgeVM>()
                 .ForMember(dest => dest.DepartureCity,
                     opts => opts.MapFrom(
@@ -64,10 +55,8 @@ namespace FlightApp.AutoMapper
                     src => src.RouteNav.ArrivalCity.CityName))
                 .ForMember(dest => dest.DepartureTime,
                 opts => opts.MapFrom(
-                    src =>src.RouteNav.DepartureTime))
-                ;
+                    src =>src.RouteNav.DepartureTime));
 
-            // BookingHistory
             CreateMap<BookingHistory, BookingHistoryVM>()
                 .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.BookingId))
                 .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Booking.PaymentStatus))
@@ -101,14 +90,10 @@ namespace FlightApp.AutoMapper
                     src.Booking.Flight.DepartureTime :
                     null)));
 
-
-            //MealChoice
             CreateMap<MealChoice, MealChoiceVM>();
 
-            //BookingClass
             CreateMap<BookingClass, BookingClassVM>();
 
-            //Tickets
             CreateMap<Ticket, TicketVM>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.TicketId))
                 .ForMember(dest => dest.PassengerName, opt => opt.MapFrom(src => $"{src.Passenger.FirstName} {src.Passenger.LastName}"))
@@ -119,7 +104,6 @@ namespace FlightApp.AutoMapper
                 .ForMember(dest => dest.BookingClassName, opt => opt.MapFrom(src => src.BookingClass.Description))
                 .ForMember(dest => dest.MealChoiceType, opt => opt.MapFrom(src => src.MealChoice.Type));
 
-            //Hotel
             CreateMap<Hotel, HotelVM>()
                 .ForMember(dest => dest.Price,
                 opts => opts.MapFrom(
@@ -134,15 +118,7 @@ namespace FlightApp.AutoMapper
                 opts => opts.MapFrom(
                     src => src.rawData.reviewScore));
 
-
-            //AspUser
             CreateMap<AspNetUser, ASPNetUserVM>();
-
-            // CreateMap<Source, Destination>();
-            // CreateMap<Destination, Source>();
-            // CreateMap<Source, Destination>().ReverseMap();
-            // CreateMap<Source, Destination>().ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.Property));
         }
     }
-    
 }
