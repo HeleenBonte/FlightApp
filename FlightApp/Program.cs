@@ -126,8 +126,8 @@ builder.Services.AddScoped<IHolidayPriceService, HolidayPriceService>();
 builder.Services.AddTransient<IDAO<MealChoice>, MealChoiceDAO>();
 builder.Services.AddTransient<IService<MealChoice>, MealChoiceService>();
 
-builder.Services.AddTransient<IDAO<Passenger>, PassengerDAO>();
-builder.Services.AddTransient<IService<Passenger>, PassengerService>();
+builder.Services.AddTransient<IPassengerDAO, PassengerDAO>();
+builder.Services.AddTransient<IPassengerService, PassengerService>();
 
 builder.Services.AddTransient<IRouteDAO, RouteDAO>();
 builder.Services.AddTransient<IRouteService, RouteService>();
