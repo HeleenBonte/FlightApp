@@ -16,6 +16,8 @@ namespace FlightApp.ViewModels
         public int PassengerCount { get; set; } = 1; // Default to 1 passenger
         public double TotalPrice { get; set; }
         public string? Notes { get; set; } // Added for holiday pricing info
+        public bool IsComplete { get; set; } = false;
+        public DateTime AddedToCartTime { get; set; } = DateTime.Now;
 
         public double GetTotalPrice()
         {

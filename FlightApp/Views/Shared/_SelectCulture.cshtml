@@ -1,0 +1,34 @@
+﻿@using Microsoft.AspNetCore.Builder
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.Extensions.Options
+
+@inject IOptions<RequestLocalizationOptions> LocOptions
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var cultureItems = LocOptions.Value.SupportedUICultures
+        .Select(c => new SelectListItem { Value = c.Name, Text = c.NativeName })
+        .ToList();
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}";
+
+    // Only show on Home/Index
+    if (!(Context.Request.Path.Value?.ToLower() == "/" ||
+          Context.Request.Path.Value?.ToLower() == "/home" ||
+          Context.Request.Path.Value?.ToLower() == "/home/index"))
+    {
+        return;
+    }
+}
+
+<div class="language-dropdown">
+    <form id="selectLanguage" method="post" asp-controller="Home" asp-action="SetAppLanguage" asp-route-returnUrl="@returnUrl">
+        <select name="lang" onchange="this.form.submit();">
+            @foreach (var item in cultureItems)
+            {
+                var selected = item.Value.Equals(requestCulture.RequestCulture.UICulture.Name, StringComparison.OrdinalIgnoreCase) ? "selected" : null;
+                <option value="@item.Value" selected="@selected">@item.Text</option>
+            }
+        </select>
+    </form>
+</div>
