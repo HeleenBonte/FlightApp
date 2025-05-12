@@ -22,17 +22,14 @@ namespace FlightApp.ViewModels
 
         public double CompleteItemsTotal()
         {
-            // Only include routes that are marked as complete
             double routeTotal = RouteItems
                 .Where(r => r.IsComplete)
                 .Sum(routeItem => routeItem.GetTotalPrice());
 
-            // Only include flights that are marked as complete
             double flightTotal = FlightItems
                 .Where(f => f.IsComplete)
                 .Sum(flightItem => flightItem.GetTotalPrice());
 
-            // Include legacy flight items (assumed complete)
             double legacyFlightTotal = CartItems.Sum(x => x.Passengers.Count * x.Price);
 
             return legacyFlightTotal + routeTotal + flightTotal;

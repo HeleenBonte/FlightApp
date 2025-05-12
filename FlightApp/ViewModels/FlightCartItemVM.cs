@@ -13,9 +13,9 @@ namespace FlightApp.ViewModels
         public DateTime? ArrivalTime { get; set; }
         public double Price { get; set; }
         public List<PassengerVM> Passengers { get; set; } = new List<PassengerVM>();
-        public int PassengerCount { get; set; } = 1; // Default to 1 passenger
+        public int PassengerCount { get; set; } = 1; 
         public double TotalPrice { get; set; }
-        public string? Notes { get; set; } // Added for holiday pricing info
+        public string? Notes { get; set; } 
         public bool IsComplete { get; set; } = false;
         public DateTime AddedToCartTime { get; set; } = DateTime.Now;
 
@@ -23,11 +23,9 @@ namespace FlightApp.ViewModels
         {
             if (Passengers == null || !Passengers.Any())
             {
-                // If no passengers with booking classes yet, use base calculation
                 return Price * PassengerCount;
             }
 
-            // Calculate total based on each passenger's booking class
             double total = 0;
             foreach (var passenger in Passengers)
             {

@@ -17,7 +17,7 @@ namespace FlightApp.ViewModels
         public List<PassengerVM> Passengers { get; set; } = new List<PassengerVM>();
         public int PassengerCount { get; set; } = 1;
         public double TotalPrice { get; set; }
-        public string? Notes { get; set; } // Added for holiday pricing info
+        public string? Notes { get; set; } 
         public bool IsComplete { get; set; } = false;
         public DateTime AddedToCartTime { get; set; } = DateTime.Now;
 
@@ -25,11 +25,9 @@ namespace FlightApp.ViewModels
         {
             if (Passengers == null || !Passengers.Any())
             {
-                // If no passengers with booking classes yet, use base calculation
                 return Flights.Sum(f => f.Price ?? 0) * PassengerCount;
             }
 
-            // Calculate total based on each passenger's booking class
             double total = 0;
             foreach (var passenger in Passengers)
             {
