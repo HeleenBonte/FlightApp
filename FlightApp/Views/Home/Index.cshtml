@@ -5,10 +5,19 @@
     ViewData["Title"] = @Localizer["PageTitle"];
 }
 
-<div class="text-center">
-    <img src="~/images/ZephyrusLogo.jpg" alt="Zephyrus Logo" />
-    <h1 class="display-4">@Localizer["WelcomeMessage"]</h1>
-    <p>@Localizer["AboutUs"]</p>
-    <p>@Localizer["Intro"]</p>
-    <p>@Localizer["Warning"]</p>
+<div class="home-hero">
+    <div class="hero-content">
+        <div class="logo-container">
+            <img src="~/images/ZephyrusLogo.jpg" alt="Zephyrus Logo" class="img-fluid" />
+        </div>
+        <h1 class="display-4">@Localizer["WelcomeMessage"]</h1>
+        <p>@Localizer["AboutUs"]</p>
+    </div>
+</div>
+
+<div class="service-section">
+    <div class="service-content">
+        <p class="mt-4">@Localizer["Intro"]</p>
+        <p>@Localizer["Warning"]</p>
+    </div>
 </div>
