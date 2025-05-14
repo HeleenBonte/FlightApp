@@ -828,12 +828,12 @@ namespace FlightApp.Controllers
                 {
                      new HotelVM
                     {
-                        Hotel_name = "Luxury 2 Bedroom Apartment- Lake view - Free Parking - Wembley Stadium 5KM",
-                        Url = "https://www.booking.com/hotel/gb/luxury-apartment-in-west-london-greater-london1.html",
-                        Price = 668.76582182,
-                        PriceString = "€ 669",
+                        Hotel_name = "The Dilly",
+                        Url = "https://www.booking.com/hotel/gb/the-dilly.html",
+                        Price = 315.9093475697,
+                        PriceString = "€ 316",
                         PhotoUrls = new List<string>{
-                        "https://cf.bstatic.com/xdata/images/hotel/square60/573575015.jpg?k=ec4c50b3c31cae484b742726fc0584a9247df7cb6e7907f898569411b4599ffb&o="
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/286431489.jpg?k=2fbc9b5473242be250625b97f050b7463d3e19f3966264e645b0b534dce0d17f&o="
                         },
                         ReviewScore = 10,
                         isApiData = false

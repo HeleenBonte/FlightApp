@@ -3,4 +3,27 @@ a{
     text-decoration: none;
     color: black;
     width: auto;
+    padding: 4px;
+}
+.alert{
+    color: red;
+    font-size: 0.5em;
+    padding:4px;
+}
+.title {
+    font-weight: bold;
+    font-size: 1.5em;
+}
+.review{
+    color: blue;
+    float: left;
+}
+.price{
+    color:orange;
+    float:right;
+}
+img{
+    max-width: 100%;
+    height: auto;
+    clear: both;
 }

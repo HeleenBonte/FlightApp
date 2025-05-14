@@ -31,14 +31,6 @@ namespace FlightApp.Util.Email
             message.AppendLine($"      <p><strong>Name:</strong> {passenger.FirstName} {passenger.LastName}</p>");
             message.AppendLine($"      <p><strong>Date of Birth:</strong> {passenger.Birthdate.ToString("dd/MM/yyyy")}</p>");
 
-            // Get meal choice and booking class from the first ticket (as these can be different per ticket)
-            if (fullTickets.Any())
-            {
-                var firstTicket = fullTickets.First();
-                message.AppendLine($"      <p><strong>Meal Choice:</strong> {firstTicket.MealChoice?.Type ?? "Standard"}</p>");
-                message.AppendLine($"      <p><strong>Booking Class:</strong> {firstTicket.BookingClass.Description}</p>");
-            }
-
             message.AppendLine("    </div>");
 
             message.AppendLine("    <div class=\"info\">");
