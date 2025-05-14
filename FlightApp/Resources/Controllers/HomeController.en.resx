@@ -135,4 +135,7 @@
   <data name="Welcome" xml:space="preserve">
     <value>Zephyrus Airlines</value>
   </data>
+  <data name="ShoppingCart" xml:space="preserve">
+    <value>Shopping Cart</value>
+  </data>
 </root>

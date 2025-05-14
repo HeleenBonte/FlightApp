@@ -118,24 +118,24 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AboutUs" xml:space="preserve">
-    <value>Sobre Nosotros</value>
+    <value />
   </data>
   <data name="BookFlights" xml:space="preserve">
-    <value>Reservar Vuelos</value>
+    <value />
   </data>
   <data name="BookRoutes" xml:space="preserve">
-    <value>Reservar Rutas</value>
+    <value />
   </data>
   <data name="Home" xml:space="preserve">
-    <value>Inicio</value>
+    <value />
   </data>
   <data name="Privacy" xml:space="preserve">
-    <value>Privacidad</value>
+    <value />
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Zephyrus Airlines</value>
+    <value />
   </data>
   <data name="ShoppingCart" xml:space="preserve">
-    <value>Carrito De Compras</value>
+    <value />
   </data>
 </root>

@@ -97,7 +97,7 @@ namespace FlightApp.Areas.Identity.Pages.Account
 
             /// Added Birthdate
             [Required]
-            [DataType(DataType.DateTime)]
+            [DataType(DataType.Date)]
             [MyDate(ErrorMessage = "You must be at least 18 years old to register.")]
             [Display(Name = "Date of Birth")]
             public DateTime DateOfBirth { get; set; }
