@@ -17,6 +17,72 @@
     <div class="row">
         <div class="col-md-3">
             <div class="account-nav-container">
+                <style>
+                    /* Hero Container Style for Account Management Navigation */
+                        .account-nav-container {
+                            background-color: rgba(0, 0, 0, 0.6);
+                            border-radius: 15px;
+                            padding: 20px;
+                            backdrop-filter: blur(5px);
+                            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+                        }
+
+                        .nav-pills .nav-link {
+                            color: white !important;
+                            background-color: rgba(255, 255, 255, 0.1);
+                            border-radius: 8px;
+                            margin-bottom: 10px;
+                            transition: all 0.3s ease;
+                        }
+
+                        .nav-pills .nav-link:hover {
+                            background-color: rgba(255, 255, 255, 0.2);
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                            color: white !important;
+                        }
+
+                        .nav-pills .nav-link.active {
+                            background-color: #0d6efd;
+                            color: white !important;
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        }
+
+                        /* Ensure all text in nav container is white */
+                        .account-nav-container,
+                        .account-nav-container a,
+                        .account-nav-container .nav-link {
+                            color: white !important;
+                        }
+
+                        /* Add hover effect for better user interaction */
+                        .account-nav-container a:hover,
+                        .account-nav-container .nav-link:hover {
+                            text-decoration: none;
+                            color: rgba(255, 255, 255, 0.9) !important;
+                        }
+
+                        / Style for the main content area */
+                    .card {
+                        border: none;
+                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .card-header {
+                        border-bottom: none;
+                        padding: 1.5rem;
+                    }
+
+                    .card-body {
+                        padding: 2rem;
+                    }
+
+                    hr {
+                        opacity: 0.1;
+                        margin: 1.5rem 0;
+                    }
+                </style>
                 <partial name="_ManageNav" />
             </div>
         </div>
