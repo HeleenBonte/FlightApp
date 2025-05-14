@@ -25,6 +25,7 @@ using System.Globalization;
 using Route = FlightApp.Domains.EntitiesDB.Route;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 //var connectionString1 = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 
 // Key Vault settings
@@ -75,19 +76,19 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     var esCulture = new CultureInfo("es");
 
     // Set Euro as the currency symbol for all cultures
-    enCulture.NumberFormat.CurrencySymbol = "€";
-    nlCulture.NumberFormat.CurrencySymbol = "€";
-    esCulture.NumberFormat.CurrencySymbol = "€";
+    enCulture.NumberFormat.CurrencySymbol = "ï¿½";
+    nlCulture.NumberFormat.CurrencySymbol = "ï¿½";
+    esCulture.NumberFormat.CurrencySymbol = "ï¿½";
 
-    // Set all cultures to show currency symbol before amount (pattern 0 = €n)
-    enCulture.NumberFormat.CurrencyPositivePattern = 0; // € n
-    nlCulture.NumberFormat.CurrencyPositivePattern = 0; // € n
-    esCulture.NumberFormat.CurrencyPositivePattern = 0; // € n
+    // Set all cultures to show currency symbol before amount (pattern 0 = ï¿½n)
+    enCulture.NumberFormat.CurrencyPositivePattern = 0; // ï¿½ n
+    nlCulture.NumberFormat.CurrencyPositivePattern = 0; // ï¿½ n
+    esCulture.NumberFormat.CurrencyPositivePattern = 0; // ï¿½ n
 
-    // Also set negative patterns to show € before amount
-    enCulture.NumberFormat.CurrencyNegativePattern = 1; // -€n
-    nlCulture.NumberFormat.CurrencyNegativePattern = 1; // -€n
-    esCulture.NumberFormat.CurrencyNegativePattern = 1; // -€n
+    // Also set negative patterns to show ï¿½ before amount
+    enCulture.NumberFormat.CurrencyNegativePattern = 1; // -ï¿½n
+    nlCulture.NumberFormat.CurrencyNegativePattern = 1; // -ï¿½n
+    esCulture.NumberFormat.CurrencyNegativePattern = 1; // -ï¿½n
 
     // Set European date format (dd/MM/yyyy) for all cultures
     enCulture.DateTimeFormat.ShortDatePattern = "dd/MM/yyyy";
