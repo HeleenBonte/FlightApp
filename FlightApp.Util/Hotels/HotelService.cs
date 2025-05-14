@@ -25,14 +25,16 @@ namespace FlightApp.Util.Hotels
             apiKey = _configuration["BookingComAPI:ApiKey"];
         }
 
-        public async Task<Hotel?> GetHotelByIdAsync(int hotelApiId)
+        public async Task<Hotel?> GetHotelByIdAsync(int hotelApiId, DateOnly arrival_date)
         {
+            DateOnly departure_date = arrival_date.AddDays(3);
             using (var httpClient = new HttpClient())
             {
                 try
                 {
-                    var uri = $"{apiBaseUrl}{apiGetHotelUrl}?hotel_id={hotelApiId}&arrival_date=2025-05-09&departure_date=2025-05-10&currency_code=EUR";
-                    //$"{apiBaseUrl}{apiGetHotelUrl}?hotel_id={hotelApiId}&arrival_date={arrivalDate}&Departure_date={departureDate}&currency_code=EUR"
+                    var uri = $"{apiBaseUrl}{apiGetHotelUrl}?hotel_id={hotelApiId}&arrival_date={arrival_date.ToString("yyyy-MM-dd")}&departure_date={departure_date.ToString("yyyy-MM-dd")}&currency_code=EUR";
+                    //$"{apiBaseUrl}{apiGetHotelUrl}?hotel_id={hotelApiId}&arrival_date=2025-05-09&departure_date=2025-05-10&currency_code=EUR";
+                    
                     var request = new HttpRequestMessage
                     {
                         Method = HttpMethod.Get,
@@ -74,16 +76,18 @@ namespace FlightApp.Util.Hotels
         }
                 
 
-        public async Task<List<HotelId>?> GetHotelIdsAsync(string cityApiId)
+        public async Task<List<HotelId>?> GetHotelIdsAsync(string cityApiId, DateOnly arrival_date)
         {
-            
+            DateOnly departure_date = arrival_date.AddDays(3);
             using (var httpClient = new HttpClient())
             {
                 
+                
                 try
                 {
-                    var uri = $"{apiBaseUrl}{apiGetIdUrl}?dest_id={cityApiId}&search_type=city&arrival_date=2025-05-09&departure_date=2025-05-10";
-                    // $"{apiBaseUrl}{apiGetIdUrl}?dest_id={cityApiId}&search_type=city&arrival_date={arrival_date}&departure_date={departure_date}";
+                    var uri = $"{apiBaseUrl}{apiGetIdUrl}?dest_id={cityApiId}&search_type=city&arrival_date={arrival_date.ToString("yyyy-MM-dd")}&departure_date={departure_date.ToString("yyyy-MM-dd")}";
+                    //$"{apiBaseUrl}{apiGetIdUrl}?dest_id={cityApiId}&search_type=city&arrival_date=2025-05-09&departure_date=2025-05-10";
+                    
                     var request = new HttpRequestMessage
                     {
                         Method = HttpMethod.Get,
@@ -109,12 +113,12 @@ namespace FlightApp.Util.Hotels
                             }
                             else
                             {
-                                throw new Exception("Problemen met de server, probeer opnieuw");
+                            return new List<HotelId>();
                             }
                         }
                         catch(Exception ex)
                         {
-                            throw new Exception(response.ReasonPhrase);
+                            throw new Exception("Probleem met de apiKey");
                         }
                 }
                 catch (Exception ex)

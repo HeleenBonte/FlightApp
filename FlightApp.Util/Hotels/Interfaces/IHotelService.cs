@@ -9,7 +9,7 @@ namespace FlightApp.Util.Hotels.Interfaces
 {
     public interface IHotelService
     {
-        Task<List<HotelId>?> GetHotelIdsAsync(string cityApiId);
-        Task<Hotel?> GetHotelByIdAsync(int hotelApiId);
+        Task<List<HotelId>?> GetHotelIdsAsync(string cityApiId, DateOnly date);
+        Task<Hotel?> GetHotelByIdAsync(int hotelApiId, DateOnly date);
     }
 }
