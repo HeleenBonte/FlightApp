@@ -1,4 +1,6 @@
-﻿namespace FlightApp.ViewModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace FlightApp.ViewModels
 {
     public class PassengerVM
     {

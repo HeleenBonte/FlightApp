@@ -2,18 +2,23 @@
 
 @if(Model != null){
     var photoUrl = Model.PhotoUrls.First().Replace("square60", "max300");
+    var title = Model.Hotel_name;
+    @if(title.Count() > 25){
+     title = title.Substring(0, 25) +"...";
+    }
     <a class="tile col-md-6" href="@Model.Url">
-<div >
+<div class="container">
+    <p class="title"> @title </p>
+   <p class="review">@Model.ReviewScore &frasl;10</p>
+   <p class="price">@Model.PriceString</p>
+   <img clas="hotelImg" src="@photoUrl" alt="Hotel Picture" />
             @if (!Model.isApiData)
             {
-                <p>Dit hotel werd niet uit de api opgehaald, dit doordat de api key niet meer geldig is (te veel calls) of door problemen op de api server</p>
+                        <p class="alert">Dit hotel werd niet uit de api opgehaald, dit doordat de api key niet meer geldig is (te veel calls) of door problemen op de api server</p>
             }
-            <h3>@Model.Hotel_name</h3>
-   <h3>@Model.ReviewScore &frasl;10</h3>
-   <p>@Model.PriceString per person per night</p>
-   <img src="@photoUrl" alt="Hotel Picture" />
-</div>
-    </a>
+
+            </div>
+</a>
 }
 else
 {
