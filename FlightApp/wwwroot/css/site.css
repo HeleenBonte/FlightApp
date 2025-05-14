@@ -37,6 +37,12 @@ body {
         z-index: -1;
     }
 
+    /* Background for flights and routes pages */
+    body.flights-page::before,
+    body.routes-page::before {
+        background-image: url('../images/PlaneMonuments.jpg');
+    }
+
 /* Custom styles for jQuery UI Datepicker */
 .ui-datepicker {
     background: #fff;
@@ -183,7 +189,7 @@ body {
     }
 
 .service-section {
-    background-image: url('../images/PlaneMonuments.jg');
+    background-image: url('../images/PlaneMonuments.jpg');
     background-size: cover;
     background-position: center;
     color: white;
