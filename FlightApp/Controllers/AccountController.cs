@@ -51,7 +51,7 @@ namespace FlightApp.Controllers
 
                     if (firstBookingWithCity != null)
                     {
-                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString(), DateOnly.FromDateTime(firstBookingWithCity.DepartureDate));
+                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString(), DateOnly.FromDateTime(DateTime.Now));
                     }
 
                     BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM

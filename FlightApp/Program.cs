@@ -31,12 +31,14 @@ var builder = WebApplication.CreateBuilder(args);
 string? vaultUrl = builder.Configuration["KeyVault:VaultUrl"];
 string? dbSecretName = builder.Configuration["KeyVault:dbSecretName"];
 string? mailSecretName = builder.Configuration["KeyVault:mailSecretName"];
+string? apiSecretName = builder.Configuration["KeyVault:apiSecretName"];
 
 // Maak een client met default credentials (werkt lokaal met ingelogde gebruiker, en in Azure met managed identity)
 var client = new SecretClient(new Uri(vaultUrl), new DefaultAzureCredential());
 
 KeyVaultSecret dbSecret = client.GetSecret(dbSecretName);
 KeyVaultSecret mailSecret = client.GetSecret(mailSecretName);
+KeyVaultSecret apiSecret = client.GetSecret(apiSecretName);
 
 // Add localization services
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -51,6 +53,8 @@ builder.Services.AddDbContext<FlightsDbContext>(options =>
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Configuration["Emailsettings:Password"] = mailSecret.Value;
 builder.Services.AddSingleton<IEmailSend, EmailSend>();
+
+builder.Configuration["BookingComAPI:ApiKey"] = apiSecret.Value;
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
