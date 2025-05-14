@@ -6,14 +6,14 @@
             <h2><i class="bi bi-airplane-fill me-2"></i>Find Direct Flights</h2>
         </div>
         <div class="card-body">
-            <form asp-action="Index"
+            <form id="flightSearchForm" asp-action="Index"
                   data-ajax="true"
                   data-ajax-method="POST"
                   data-ajax-mode="replace"
-                  data-ajax-update="#content"
+                  data-ajax-update="#flight-results"
                   data-ajax-loading="#divloading"
-                  data-ajax-success="Success"
-                  data-ajax-failure="Failure">
+                  data-ajax-success="onSearchSuccess"
+                  data-ajax-failure="onSearchFailure">
 
                 @Html.AntiForgeryToken()
 
@@ -69,11 +69,21 @@
         </div>
     </div>
 
-    <div class="mt-4" id="content">
-        <div class="text-center text-muted py-5">
-            <i class="bi bi-arrow-up-circle fs-1"></i>
-            <p class="mt-3">Select departure and arrival cities to search for available flights</p>
-        </div>
+    <!-- Separate div for search results -->
+    <div class="mt-4" id="flight-results">
+        @if (ViewBag.FlightResults != null)
+        {
+            @await Html.PartialAsync("_SearchFlightsPartial", (FlightApp.ViewModels.FlightListHotelListVM)ViewBag.FlightResults)
+        }
+        else
+        {
+            <div class="mt-4" id="content">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-arrow-up-circle fs-1"></i>
+                    <p class="mt-3">Select departure and arrival cities to search for available flights</p>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -107,14 +117,28 @@
             });
         });
 
-        // Custom success handler for AJAX
-        function Success(data) {
-            console.log("AJAX request completed successfully");
+        // Success handler
+        function onSearchSuccess(data) {
+            console.log("Search completed successfully");
         }
 
-        // Custom failure handler for AJAX
-        function Failure(xhr, status, error) {
-            console.error("AJAX request failed:", status, error);
+        // Failure handler
+        function onSearchFailure(xhr, status, error) {
+            console.error("Search failed:", status, error);
+            
+            // Try to parse error message from response
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.errors && response.errors.length > 0) {
+                    alert("Error: " + response.errors.join(", "));
+                } else if (response.message) {
+                    alert("Error: " + response.message);
+                } else {
+                    alert("An error occurred while searching for flights.");
+                }
+            } catch (e) {
+                alert("An error occurred while searching for flights.");
+            }
         }
     </script>
 }

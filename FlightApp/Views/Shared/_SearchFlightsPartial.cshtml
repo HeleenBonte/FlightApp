@@ -1,7 +1,7 @@
 ﻿@model FlightApp.ViewModels.FlightListHotelListVM
 
 <div class="results-container mt-3">
-    @if (Model.flights.Any())
+    @if (Model != null && Model.flights != null && Model.flights.Any())
     {
         <div class="search-results">
             @foreach (var flight in Model.flights)
@@ -63,11 +63,16 @@
     else
     {
         <div class="alert alert-warning">
-            No flights found matching your criteria.
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                <div>
+                    <p class="mb-0">No flights found matching your criteria. Please try different search parameters.</p>
+                </div>
+            </div>
         </div>
     }
 
-    @if (Model.hotels.Any())
+    @if (Model?.hotels != null && Model.hotels.Any())
     {
         <div class="card shadow border-info mt-4">
             <div class="card-header bg-info text-white">

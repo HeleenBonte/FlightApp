@@ -57,16 +57,22 @@ namespace FlightApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(FlightsCityVM entity)
         {
+            // For any invalid input, return an empty result that will display "No flights found" message
             if (entity.ArrivalCityID == 0 || entity.DepartureCityID == 0 || entity.DepartureDate < DateOnly.FromDateTime(DateTime.Now))
             {
-                ModelState.AddModelError("", "Vul alstublieft alle velden in.");
+                return PartialView("_SearchFlightsPartial", new FlightListHotelListVM { flights = new List<FlightVM>() });
             }
 
             try
             {
-                var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
-                List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
+                var flightList = await flightService.GetFlightsByCitiesID(
+                    Convert.ToInt16(entity.ArrivalCityID),
+                    Convert.ToInt16(entity.DepartureCityID),
+                    entity.DepartureDate);
 
+                List<FlightVM> listVM = flightList != null ? _mapper.Map<List<FlightVM>>(flightList) : new List<FlightVM>();
+
+                // Apply price factors if needed
                 foreach (var flight in listVM)
                 {
                     if (flight.DepartureTime.HasValue && flight.Price.HasValue)
@@ -84,24 +90,24 @@ namespace FlightApp.Controllers
                     }
                 }
 
+                // Add auth headers
                 Response.Headers.Append("X-Preserve-Auth", "true");
 
-                FlightListHotelListVM flightListHotelListVM = new FlightListHotelListVM();
-                flightListHotelListVM.flights = listVM;
-                flightListHotelListVM.hotels = new List<HotelVM>();
-
-                if (listVM != null)
+                // Create and populate result model
+                FlightListHotelListVM result = new FlightListHotelListVM
                 {
-                    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString(), entity.DepartureDate);
-                    flightListHotelListVM.hotels = hotels;
-                }
+                    flights = listVM,
+                    hotels = listVM.Any()
+                        ? await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString(), entity.DepartureDate)
+                        : new List<HotelVM>()
+                };
 
-                return PartialView("_SearchFlightsPartial", flightListHotelListVM);
+                return PartialView("_SearchFlightsPartial", result);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ViewBag.ErrorMessage = "Er is een probleem opgetreden bij het ophalen van de lijst";
-                return View("Error");
+                // Simple error handling - just return empty results
+                return PartialView("_SearchFlightsPartial", new FlightListHotelListVM { flights = new List<FlightVM>() });
             }
         }
 
