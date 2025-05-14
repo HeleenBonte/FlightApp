@@ -11,5 +11,7 @@ namespace FlightApp.ViewModels
         public int RouteId { get; set; }
         public int FlightId { get; set; }
         public IEnumerable<Passenger>? Passengers { get; set; }
+        public string DepartureCity { get; set; } = "N/A";
+        public string ArrivalCity { get; set; } = "N/A";
     }
 }

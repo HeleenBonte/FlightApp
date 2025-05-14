@@ -1,64 +1,133 @@
 ﻿@model FlightApp.ViewModels.BookingVM
-
 @{
-    ViewData["Title"] = "DeleteBooking";
+    ViewData["Title"] = "Cancel Booking";
 }
 
-<h1>Cancelation Confirmation</h1>
+<div class="container mt-4">
+    <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+            <h2><i class="bi bi-exclamation-triangle me-2"></i>Cancel Booking</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Booking Details</h5>
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <td><span class="badge bg-secondary">#@Model.BookingId</span></td>
+                                    </tr>
+                                    @if (!string.IsNullOrEmpty(Model.UserName))
+                                    {
+                                        <tr>
+                                            <th>User</th>
+                                            <td>@Model.UserName</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th>Booking Date</th>
+                                        <td>@Model.BookingTime.ToString("dd MMM yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Status</th>
+                                        <td>
+                                            @if (Model.PaymentStatus)
+                                            {
+                                                <span class="badge bg-success">Paid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    @if (Model.FlightId > 0)
+                                    {
+                                        <tr>
+                                            <th>Flight ID</th>
+                                            <td>@Model.FlightId</td>
+                                        </tr>
+                                    }
+                                    @if (Model.RouteId > 0 && Model.FlightId == 0)
+                                    {
+                                        <tr>
+                                            <th>Route ID</th>
+                                            <td>@Model.RouteId</td>
+                                        </tr>
+                                    }
+                                    @if (Model.Passengers != null && Model.Passengers.Any())
+                                    {
+                                        <tr>
+                                            <th>Passengers</th>
+                                            <td>
+                                                <ul class="list-unstyled mb-0">
+                                                    @foreach (var passenger in Model.Passengers)
+                                                    {
+                                                        <li><i class="bi bi-person me-1"></i> @passenger.FirstName @passenger.LastName</li>
+                                                    }
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
 
-<h3>Are you sure you want to cancel this trip?</h3>
-<div>
-    <h4>Booking</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Booking ID
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BookingId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PaymentStatus)
-        </dt>
-        <dd class = "col-sm-10">
-            @if (Model.PaymentStatus)
-            {
-                <span class="badge bg-success">Paid</span>
-            }
-            else
-            {
-                <span class="badge bg-warning text-dark">Refunded</span>
-            }
-        </dd>
-        @if(Model.RouteId != null)
-        {
-            <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.RouteId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.RouteId)
-            </dd>
-        }
-        else
-        {
-            <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FlightId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FlightId)
-        </dd>
-        }
-        
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+                            <div class="d-flex justify-content-center mt-4">
+                                <button type="button" class="btn btn-danger btn-lg me-2" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel Booking
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                    <i class="bi bi-arrow-left me-1"></i> Back
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stylized Bootstrap Modal for Confirmation -->
+<div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmCancelModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Confirm Cancellation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-airplane-engines text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-center mb-3">Booking <span class="badge bg-secondary">#@Model.BookingId</span></h5>
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle fs-2 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading">Cancellation Warning</h5>
+                            <p class="mb-0">Are you sure you want to cancel your booking? You will be refunded, but this action cannot be undone.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="id" value="@Model.BookingId" />
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-check-lg me-1"></i> Yes, Cancel Booking
+                    </button>
+                </form>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i> No, Go Back
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
