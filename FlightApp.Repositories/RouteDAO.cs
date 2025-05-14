@@ -42,7 +42,7 @@ namespace FlightApp.Repositories
         {
             try
             {
-                return await dbContext.Routes.Where(e => e.RouteId == Id).FirstOrDefaultAsync();
+                return await dbContext.Routes.Include(e => e.ArrivalCity).Include(e => e.DepartureCity).Include(e => e.Flights).Where(e => e.RouteId == Id).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {

@@ -18,7 +18,21 @@ namespace FlightApp.Repositories
             dbContext = _dbContext;
         }
 
-        public async Task AddAsync(Ticket entity)
+        public async Task<int> GetCountByFlightIDAsync(int flightID)
+        {
+            try
+            {
+                return await dbContext.Tickets
+                    .Where(t => t.FlightId == flightID)
+                    .CountAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
+        }
+            public async Task AddAsync(Ticket entity)
         {
             try
             {

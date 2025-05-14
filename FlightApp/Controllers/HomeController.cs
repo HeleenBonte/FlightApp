@@ -41,7 +41,6 @@ namespace FlightApp.Controllers
         [HttpPost]
         public IActionResult SetAppLanguage(string lang, string returnUrl)
         {
-            // Only allow language changes for Home/Index
             if (!returnUrl.ToLower().Contains("/home") &&
                 !returnUrl.Equals("~/") &&
                 !returnUrl.Equals("~"))

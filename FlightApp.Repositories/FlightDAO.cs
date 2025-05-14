@@ -17,7 +17,22 @@ namespace FlightApp.Repositories
         {
             dbContext = _dbContext;
         }
-
+        public async Task<Flight> GetFlightByIDAsync(int flightId)
+        {
+            try
+            {
+                return await dbContext.Flights
+                    .Include(f => f.ArrivalCityNavigation)
+                    .Include(f => f.DepartureCityNavigation)
+                    .Where(f => f.FlightId == flightId)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error in DAO");
+                throw;
+            }
+        }
         public async Task AddAsync(Flight entity)
         {
             try

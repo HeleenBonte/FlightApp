@@ -1,6 +1,6 @@
 ﻿using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
-using FlightApp.Repositories.Interface;
+using FlightApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FlightApp.Repositories
 {
-    public class PassengerDAO : IDAO<Passenger>
+    public class PassengerDAO : IPassengerDAO
     {
         private readonly FlightsDbContext dbContext;
 
@@ -63,9 +63,33 @@ namespace FlightApp.Repositories
             }
         }
 
-        public Task UpdateAsync(Passenger entity)
+        public async Task UpdateAsync(Passenger entity)
         {
-            throw new NotImplementedException();
+            dbContext.Entry(entity).State = EntityState.Modified;
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
+        }
+        public async Task<Passenger?> FindIsExistingPassenger(string firstname, string lastname, string email)
+        {
+            try
+            {
+                return await dbContext.Passengers
+                    .FirstOrDefaultAsync(p =>
+                                p.FirstName.ToLower() == firstname.ToLower() &&
+                              p.LastName.ToLower() == lastname.ToLower() &&
+                                p.Email.ToLower() == email.ToLower());
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

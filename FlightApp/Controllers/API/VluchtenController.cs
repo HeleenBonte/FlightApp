@@ -12,8 +12,6 @@ namespace FlightApp.Controllers.API
     [ApiController]
     public class VluchtenController : ControllerBase
     {
-        // /api/vluchten geeft een lijst van alle vluchten die tussen twee opgegeven luchthavens
-        // parameters: vertrekluchthavenID && aankomstluchthavenID
         private IFlightService _flightService;
         private readonly IMapper _mapper;
         
@@ -44,6 +42,5 @@ namespace FlightApp.Controllers.API
                 });
             }
         }
-        
     }
 }

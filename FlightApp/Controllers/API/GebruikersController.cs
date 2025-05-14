@@ -10,9 +10,6 @@ namespace FlightApp.Controllers.API
     [ApiController]
     public class GebruikersController : ControllerBase
     {
-
-        // /api/gebruikers geeft een lijst van alle geregistreerde gebruikers
-
         private IService<AspNetUser> _UserService;
         private readonly IMapper _mapper;
 

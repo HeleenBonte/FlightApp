@@ -10,5 +10,6 @@ namespace FlightApp.ViewModels
         public string PriceString { get; set; }
         public List<string> PhotoUrls { get; set; }
         public double ReviewScore { get; set; }
+        public bool isApiData { get; set; } = true;
     }
 }

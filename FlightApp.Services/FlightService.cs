@@ -15,7 +15,10 @@ namespace FlightApp.Services
         {
             _flightDAO = flightDAO;
         }
-
+        public async Task<Flight> GetFlightByIDAsync(int flightId)
+        {
+            return await _flightDAO.GetFlightByIDAsync(flightId);
+        }
         public async Task<IEnumerable<Flight>?> GetAllAsync()
         {
             return await _flightDAO.GetAllAsync();

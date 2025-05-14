@@ -7,6 +7,8 @@ using FlightApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics.Metrics;
+using System;
 
 namespace FlightApp.Controllers
 {
@@ -65,20 +67,16 @@ namespace FlightApp.Controllers
                 var flightList = await flightService.GetFlightsByCitiesID(Convert.ToInt16(entity.ArrivalCityID), Convert.ToInt16(entity.DepartureCityID), entity.DepartureDate);
                 List<FlightVM> listVM = _mapper.Map<List<FlightVM>>(flightList);
 
-                // Apply holiday price factor to each flight
                 foreach (var flight in listVM)
                 {
                     if (flight.DepartureTime.HasValue && flight.Price.HasValue)
                     {
-                        // Get the holiday price factor for the departure city
                         double priceFactor = await _holidayPriceService.GetHolidayPriceFactor(
                             Convert.ToInt16(entity.DepartureCityID),
                             flight.DepartureTime.Value);
 
-                        // Apply the price factor
                         flight.Price = flight.Price * priceFactor;
 
-                        // Optionally, add a note about holiday pricing
                         if (priceFactor > 1.0)
                         {
                             flight.Notes = $"Holiday pricing applied (x{priceFactor})";
@@ -92,11 +90,11 @@ namespace FlightApp.Controllers
                 flightListHotelListVM.flights = listVM;
                 flightListHotelListVM.hotels = new List<HotelVM>();
 
-                //if (listVM != null)
-                //{
-                //    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString());
-                //    flightListHotelListVM.hotels = hotels;
-                //}
+                if (listVM != null)
+                {
+                    var hotels = await GetHotelVMList(flightList.First().ArrivalCityNavigation.ApiId.ToString(), entity.DepartureDate);
+                    flightListHotelListVM.hotels = hotels;
+                }
 
                 return PartialView("_SearchFlightsPartial", flightListHotelListVM);
             }
@@ -148,17 +146,14 @@ namespace FlightApp.Controllers
                             Flight flight = await flightService.FindByIdAsync(Convert.ToInt16(v.FlightId));
                             var flightVM = _mapper.Map<FlightVM>(flight);
 
-                            // Apply holiday price factor to each flight in the route
                             if (flightVM.DepartureTime.HasValue && flightVM.Price.HasValue)
                             {
                                 double priceFactor = await _holidayPriceService.GetHolidayPriceFactor(
                                     flight.DepartureCity,
                                     flightVM.DepartureTime.Value);
 
-                                // Apply the price factor
                                 flightVM.Price = flightVM.Price * priceFactor;
 
-                                // Optionally, add a note about holiday pricing
                                 if (priceFactor > 1.0)
                                 {
                                     flightVM.Notes = $"Holiday pricing applied (x{priceFactor})";
@@ -195,7 +190,6 @@ namespace FlightApp.Controllers
                         route.Layover2 = flightVMs[1].ArrivalCity;
                     }
 
-                    // Calculate and set the price for each route based on its flights (with holiday factors applied)
                     route.Price = flightVMs.Sum(f => f.Price ?? 0) > 0
                         ? Convert.ToDecimal(flightVMs.Sum(f => f.Price ?? 0))
                         : 0;
@@ -205,11 +199,11 @@ namespace FlightApp.Controllers
                 routeListHotelListVM.routes = listVM;
                 routeListHotelListVM.hotels = new List<HotelVM>();
 
-                //if (!routeList.IsNullOrEmpty())
-                //{
-                //    var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString());
-                //    routeListHotelListVM.hotels = hotels;
-                //}
+                if (!routeList.IsNullOrEmpty())
+                {
+                    var hotels = await GetHotelVMList(routeList.First().ArrivalCity.ApiId.ToString(), entity.DepartureDate);
+                    routeListHotelListVM.hotels = hotels;
+                }
 
                 Response.Headers.Append("X-Preserve-Auth", "true");
                 return PartialView("_SearchRoutesPartial", routeListHotelListVM);
@@ -232,27 +226,95 @@ namespace FlightApp.Controllers
             return RedirectToAction("Index", "ShoppingCart");
         }
 
-        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
-        {
-
-
-            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
-            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
-            lstHotelIds = lstHotelIds.Slice(0, 3);
-            List<HotelVM> hotels = new List<HotelVM>();
-            foreach (var hotelId in lstHotelIds)
-            {
-                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
-                var hotelvm = _mapper.Map<HotelVM>(hotel);
-                
-                hotels.Add(hotelvm);
-            }
-            return hotels;
-        }
+        
         [HttpGet]
         public IActionResult AddToCart(int id)
         {
             return RedirectToAction("AddFlightToCart", "ShoppingCart", new { id });
+        }
+
+
+
+        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID, DateOnly apiArrivalDate)
+        {
+
+
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID, apiArrivalDate);
+            if (lstHotelIds.Count > 0)
+            {
+                lstHotelIds = lstHotelIds.Slice(0, 3);
+                List<HotelVM> hotels = new List<HotelVM>();
+                foreach (var hotelId in lstHotelIds)
+                {
+                    var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id, apiArrivalDate);
+                    var hotelvm = new HotelVM();
+                    if (hotel != null)
+                    {
+                        hotelvm = _mapper.Map<HotelVM>(hotel);
+                    }
+                    else
+                    {
+                        hotelvm = new HotelVM
+                        {
+                            Hotel_name = "citizenM Tower of London",
+                            Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                            Price = 640.375940574,
+                            PriceString = "€ 640",
+                            PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                            ReviewScore = 8.4,
+                            isApiData = false
+                        };
+                    }
+
+                    hotels.Add(hotelvm);
+                }
+                return hotels;
+            }
+            else
+            {
+                List<HotelVM> hotels = new List<HotelVM>
+                {
+                     new HotelVM
+                    {
+                        Hotel_name = "Luxury 2 Bedroom Apartment- Lake view - Free Parking - Wembley Stadium 5KM",
+                        Url = "https://www.booking.com/hotel/gb/luxury-apartment-in-west-london-greater-london1.html",
+                        Price = 668.76582182,
+                        PriceString = "€ 669",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/573575015.jpg?k=ec4c50b3c31cae484b742726fc0584a9247df7cb6e7907f898569411b4599ffb&o="
+                        },
+                        ReviewScore = 10,
+                        isApiData = false
+                    },
+                    new HotelVM
+                    {
+                        Hotel_name = "citizenM Tower of London",
+                        Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                        Price = 640.375940574,
+                        PriceString = "€ 640",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                        ReviewScore = 8.4,
+                        isApiData = false
+                    },
+                     new HotelVM
+                    {
+                        Hotel_name = "Park Plaza County Hall London",
+                        Url = "https://www.booking.com/hotel/gb/park-plaza-county-hall.html",
+                        Price = 771.872168772,
+                        PriceString = "€ 772",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/511738782.jpg?k=4d2318d8a7b43166b4888c095a870e8f91faf2ba01937b2f4231722e79c35b79&o="
+                        },
+                        ReviewScore = 8.6,
+                        isApiData = false
+                    }
+                };
+                return hotels;
+            }
         }
     }
 }

@@ -8,5 +8,7 @@ namespace FlightApp.Repositories.Interface
     public interface ITicketDAO : IDAO<Ticket>
     {
         Task<IEnumerable<Ticket>> GetTicketsByBookingIdAsync(int bookingId);
+        Task<int> GetCountByFlightIDAsync(int flightID);
+
     }
 }

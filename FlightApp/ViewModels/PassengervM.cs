@@ -12,9 +12,9 @@
         public int SeatNumber { get; set; }
         public bool IsCheckedIn { get; set; } = false;
         public int MealChoiceId { get; set; }
-        public int BookingClassId { get; set; } = 1; // Default to Economy (ID 1)
+        public int BookingClassId { get; set; } = 1; 
         public string? BookingClassName { get; set; }
-        public double BookingClassPriceFactor { get; set; } = 1.0; // Default price factor
+        public double BookingClassPriceFactor { get; set; } = 1.0; 
 
         public List<TicketDetailVM> TicketDetails { get; set; } = new List<TicketDetailVM>();
     }

@@ -20,7 +20,9 @@ namespace FlightApp.Services
             return await _ticketDAO.GetAllAsync();
         }
 
-        public Task AddAsync(Ticket entity) => throw new NotImplementedException();
+        public async Task AddAsync(Ticket entity) {
+            await _ticketDAO.AddAsync(entity);
+        }
         public async Task DeleteAsync(Ticket entity) {
             await _ticketDAO.DeleteAsync(entity);
         }
@@ -41,6 +43,10 @@ namespace FlightApp.Services
                 Console.WriteLine($"Error in service: {ex.Message}");
                 throw;
             }
+        }
+        public async Task<int> GetCountByFlightIDAsync(int flightID)
+        {
+            return await _ticketDAO.GetCountByFlightIDAsync(flightID);
         }
     }
 }

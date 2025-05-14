@@ -34,11 +34,8 @@ namespace FlightApp.Controllers
             if (userId != null)
             {
                 try { 
-                // User is logged in, redirect to the desired page
                 var history = await _bookingHistoryService.GetAllByUserIdAsync(userId);
                 List<BookingHistoryVM> bookingHistoryVMs = _mapper.Map<List<BookingHistoryVM>>(history);
-
-                    // Handle case with no bookings
                     if (!bookingHistoryVMs.Any())
                     {
                         BookingHistoryHotelListVM emptyModel = new BookingHistoryHotelListVM
@@ -49,14 +46,13 @@ namespace FlightApp.Controllers
                         return View(emptyModel);
                     }
 
-                    // Get hotel recommendations for the first booking's arrival city
                     var firstBookingWithCity = bookingHistoryVMs.FirstOrDefault(b => b.ArrivalCityData?.ApiId != null);
                     List<HotelVM> hotels = new List<HotelVM>();
 
-                    //if (firstBookingWithCity != null)
-                    //{
-                    //    hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString());
-                    //}
+                    if (firstBookingWithCity != null)
+                    {
+                        hotels = await GetHotelVMList(firstBookingWithCity.ArrivalCityData.ApiId.ToString(), DateOnly.FromDateTime(firstBookingWithCity.DepartureDate));
+                    }
 
                     BookingHistoryHotelListVM bookingHistoryHotelListVM = new BookingHistoryHotelListVM
                     {
@@ -88,7 +84,6 @@ namespace FlightApp.Controllers
                 return NotFound();
             }
             var bookingVM = _mapper.Map<BookingVM>(booking);
-           // bookingVM.UserName = booking.Passengers.First().FirstName + " " + booking.Passengers.First().LastName;
             return View(bookingVM);
         }
 
@@ -102,7 +97,6 @@ namespace FlightApp.Controllers
             }
             try
             {
-                //remove tickets
                 var tickets = await _ticketService.GetTicketsByBookingIdAsync(Convert.ToInt32(id));
                 if (tickets == null)
                 {
@@ -112,7 +106,6 @@ namespace FlightApp.Controllers
                 {
                     await _ticketService.DeleteAsync(ticket);
                 }
-                //update booking
                 Booking? booking = await _bookingService.FindByIdAsync(Convert.ToInt32(id));
                 if (booking == null)
                 {
@@ -129,22 +122,86 @@ namespace FlightApp.Controllers
             }
         }
 
-
-
-        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID)
+        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID, DateOnly apiArrivalDate)
         {
-            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
-            //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
-            lstHotelIds = lstHotelIds.Slice(0, 3);
-            List<HotelVM> hotels = new List<HotelVM>();
-            foreach (var hotelId in lstHotelIds)
-            {
-                var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
-                var hotelvm = _mapper.Map<HotelVM>(hotel);
 
-                hotels.Add(hotelvm);
+
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID, apiArrivalDate);
+            if (lstHotelIds.Count > 0)
+            {
+                lstHotelIds = lstHotelIds.Slice(0, 3);
+                List<HotelVM> hotels = new List<HotelVM>();
+                foreach (var hotelId in lstHotelIds)
+                {
+                    var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id, apiArrivalDate);
+                    var hotelvm = new HotelVM();
+                    if (hotel != null)
+                    {
+                        hotelvm = _mapper.Map<HotelVM>(hotel);
+                    }
+                    else
+                    {
+                        hotelvm = new HotelVM
+                        {
+                            Hotel_name = "citizenM Tower of London",
+                            Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                            Price = 640.375940574,
+                            PriceString = "€ 640",
+                            PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                            ReviewScore = 8.4,
+                            isApiData = false
+                        };
+                    }
+
+                    hotels.Add(hotelvm);
+                }
+                return hotels;
             }
-            return hotels;
+            else
+            {
+                List<HotelVM> hotels = new List<HotelVM>
+                {
+                     new HotelVM
+                    {
+                        Hotel_name = "Luxury 2 Bedroom Apartment- Lake view - Free Parking - Wembley Stadium 5KM",
+                        Url = "https://www.booking.com/hotel/gb/luxury-apartment-in-west-london-greater-london1.html",
+                        Price = 668.76582182,
+                        PriceString = "€ 669",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/573575015.jpg?k=ec4c50b3c31cae484b742726fc0584a9247df7cb6e7907f898569411b4599ffb&o="
+                        },
+                        ReviewScore = 10,
+                        isApiData = false
+                    },
+                    new HotelVM
+                    {
+                        Hotel_name = "citizenM Tower of London",
+                        Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                        Price = 640.375940574,
+                        PriceString = "€ 640",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                        ReviewScore = 8.4,
+                        isApiData = false
+                    },
+                     new HotelVM
+                    {
+                        Hotel_name = "Park Plaza County Hall London",
+                        Url = "https://www.booking.com/hotel/gb/park-plaza-county-hall.html",
+                        Price = 771.872168772,
+                        PriceString = "€ 772",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/511738782.jpg?k=4d2318d8a7b43166b4888c095a870e8f91faf2ba01937b2f4231722e79c35b79&o="
+                        },
+                        ReviewScore = 8.6,
+                        isApiData = false
+                    }
+                };
+                return hotels;
+            }
         }
     }
 }

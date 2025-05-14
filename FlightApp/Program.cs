@@ -121,12 +121,13 @@ builder.Services.AddTransient<IFlightService, FlightService>();
 
 builder.Services.AddTransient<IDAO<Holiday>, HolidayDAO>();
 builder.Services.AddTransient<IService<Holiday>, HolidayService>();
+builder.Services.AddScoped<IHolidayPriceService, HolidayPriceService>();
 
 builder.Services.AddTransient<IDAO<MealChoice>, MealChoiceDAO>();
 builder.Services.AddTransient<IService<MealChoice>, MealChoiceService>();
 
-builder.Services.AddTransient<IDAO<Passenger>, PassengerDAO>();
-builder.Services.AddTransient<IService<Passenger>, PassengerService>();
+builder.Services.AddTransient<IPassengerDAO, PassengerDAO>();
+builder.Services.AddTransient<IPassengerService, PassengerService>();
 
 builder.Services.AddTransient<IRouteDAO, RouteDAO>();
 builder.Services.AddTransient<IRouteService, RouteService>();
@@ -144,8 +145,7 @@ builder.Services.AddTransient<IHotelService, HotelService>();
 builder.Services.AddTransient<ITicketDAO, TicketDAO>();
 builder.Services.AddTransient<ITicketService, TicketService>();
 
-builder.Services.AddScoped<IDAO<Holiday>, HolidayDAO>();
-builder.Services.AddScoped<IHolidayPriceService, HolidayPriceService>();
+
 builder.Services.AddTransient<IDAO<AspNetUser>, AspUserDAO>();
 builder.Services.AddTransient<IService<AspNetUser>, AspUserService>();
 

@@ -23,7 +23,9 @@ namespace FlightApp.Services
 
         public Task AddAsync(Route entity) => throw new NotImplementedException();
         public Task DeleteAsync(Route entity) => throw new NotImplementedException();
-        public Task<Route?> FindByIdAsync(int id) => throw new NotImplementedException();
+        public async Task<Route?> FindByIdAsync(int id){
+        return await _routeDAO.FindByIdAsync(id);
+        }
         public Task UpdateAsync(Route entity) => throw new NotImplementedException();
 
         public async Task<IEnumerable<Route>> GetRoutesByCitiesID(int arrivalCityId, int departureCityId, DateOnly departureDate)

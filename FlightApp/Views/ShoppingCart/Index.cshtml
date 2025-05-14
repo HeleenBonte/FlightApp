@@ -16,7 +16,16 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-@if (!Model.RouteItems.Any() && !Model.FlightItems.Any())
+@{
+    // Filter items to show only complete ones
+    var completeRouteItems = Model.RouteItems.Where(r => r.IsComplete).ToList();
+    var completeFlightItems = Model.FlightItems.Where(f => f.IsComplete).ToList();
+
+    // Check if there are any items to display
+    var hasItems = completeRouteItems.Any() || completeFlightItems.Any();
+}
+
+@if (!hasItems)
 {
     <div class="alert alert-warning">Your basket is empty.</div>
     <p>
@@ -35,7 +44,7 @@ else
             <div class="card-body">
                 <div class="row">
                     <!-- Routes -->
-                    @if (Model.RouteItems.Any())
+                    @if (completeRouteItems.Any())
                     {
                         <div class="col-md-12 mb-4">
                             <h5>Routes</h5>
@@ -54,7 +63,7 @@ else
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in Model.RouteItems)
+                                        @foreach (var item in completeRouteItems)
                                         {
                                             // Group passengers by booking class
                                             var passengersByClass = item.Passengers?
@@ -81,7 +90,7 @@ else
                                                                 // Calculate price for this booking class
                                                                 double adjustedPrice = item.Flights.Sum(f => f.Price ?? 0) * bookingClass.BookingClassPriceFactor * count;
                                                             }
-                                                            €@adjustedPrice.ToString("0.00")
+                                                            ï¿½@adjustedPrice.ToString("0.00")
                                                         </td>
                                                         <td>@bookingClass.BookingClassName</td>
                                                         <td>
@@ -114,45 +123,6 @@ else
                                                     </tr>
                                                 }
                                             }
-                                            else
-                                            {
-                                                <!-- No passengers assigned yet, show default row -->
-                                                <tr>
-                                                    <td>@item.PassengerCount</td>
-                                                    <td>@item.DepartureTime.ToString("dd/MM/yyyy HH:mm")</td>
-                                                    <td>@item.DepartureCity</td>
-                                                    <td>@item.ArrivalCity</td>
-                                                    <td>@(item.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                                    <td>€@(item.GetTotalPrice().ToString("0.00"))</td>
-                                                    <td>Not specified</td>
-                                                    <td>
-                                                        <form asp-action="RemoveRouteFromCart" asp-controller="ShoppingCart" method="post">
-                                                            <input type="hidden" name="routeId" value="@item.RouteId" />
-                                                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-
-                                                <!-- Show holiday price notes if any flight has them -->
-                                                var flightsWithNotes = item.Flights.Where(f => !string.IsNullOrEmpty(f.Notes)).ToList();
-                                                @if (flightsWithNotes.Any())
-                                                {
-                                                    <tr class="table-info">
-                                                        <td colspan="8">
-                                                            <div class="small">
-                                                                <i class="bi bi-info-circle me-1"></i>
-                                                                <strong>Holiday pricing applied:</strong>
-                                                                @foreach (var flight in flightsWithNotes)
-                                                                {
-                                                                    <span class="ms-2 badge bg-info text-dark">
-                                                                        @flight.DepartureCity to @flight.ArrivalCity: @flight.Notes
-                                                                    </span>
-                                                                }
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
                                         }
                                     </tbody>
                                 </table>
@@ -161,7 +131,7 @@ else
                     }
 
                     <!-- Flights -->
-                    @if (Model.FlightItems.Any())
+                    @if (completeFlightItems.Any())
                     {
                         <div class="col-md-12 mb-4">
                             <h5>Direct Flights</h5>
@@ -180,7 +150,7 @@ else
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in Model.FlightItems)
+                                        @foreach (var item in completeFlightItems)
                                         {
                                             // Group passengers by booking class
                                             var passengersByClass = item.Passengers?
@@ -207,7 +177,7 @@ else
                                                                 // Calculate price for this booking class
                                                                 double adjustedPrice = item.Price * bookingClass.BookingClassPriceFactor * count;
                                                             }
-                                                            €@adjustedPrice.ToString("0.00")
+                                                            ï¿½@adjustedPrice.ToString("0.00")
                                                         </td>
                                                         <td>@bookingClass.BookingClassName</td>
                                                         <td>
@@ -219,57 +189,17 @@ else
                                                     </tr>
                                                 }
 
-                                                <!-- Display holiday pricing info if present -->
+                                                <!-- Show holiday price notes if any -->
                                                 @if (!string.IsNullOrEmpty(item.Notes))
                                                 {
                                                     <tr class="table-info">
                                                         <td colspan="8">
                                                             <div class="small">
                                                                 <i class="bi bi-info-circle me-1"></i>
-                                                                <strong>@item.Notes</strong>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <!-- No passengers assigned yet, show default row -->
-                                                <tr>
-                                                    <td>@item.PassengerCount</td>
-                                                    <td>@(item.DepartureTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                                    <td>@item.DepartureCity</td>
-                                                    <td>@item.ArrivalCity</td>
-                                                    <td>@(item.ArrivalTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                                    <td>€@(item.GetTotalPrice().ToString("0.00"))</td>
-                                                    <td>
-                                                        @if (item.Passengers != null && item.Passengers.Any())
-                                                        {
-                                                            <span class="badge bg-success">Selected</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <a class="btn btn-sm btn-primary" asp-action="SelectFlightPassengers" asp-route-flightId="@item.FlightId">
-                                                                Select Passengers
-                                                            </a>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        <form asp-action="RemoveFlightFromCart" asp-controller="ShoppingCart" method="post">
-                                                            <input type="hidden" name="flightId" value="@item.FlightId" />
-                                                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-
-                                                <!-- Display holiday pricing info if present -->
-                                                @if (!string.IsNullOrEmpty(item.Notes))
-                                                {
-                                                    <tr class="table-info">
-                                                        <td colspan="8">
-                                                            <div class="small">
-                                                                <i class="bi bi-info-circle me-1"></i>
-                                                                <strong>@item.Notes</strong>
+                                                                <strong>Holiday pricing applied:</strong>
+                                                                <span class="ms-2 badge bg-info text-dark">
+                                                                    @item.DepartureCity to @item.ArrivalCity: @item.Notes
+                                                                </span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -286,7 +216,7 @@ else
                 <div class="mt-4 pt-2 border-top">
                     <div class="row">
                         <div class="col-md-6">
-                            <h4>Total: €@Model.ComputeTotalValue().ToString("0.00")</h4>
+                            <h4>Total: @Model.CompleteItemsTotal().ToString("C")</h4>
                         </div>
                         <div class="col-md-6 text-end">
                             <div class="d-flex justify-content-end">

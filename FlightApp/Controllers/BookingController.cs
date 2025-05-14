@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using FlightApp.Domains.DataDB;
 using FlightApp.Domains.EntitiesDB;
-using FlightApp.Models;
 using FlightApp.Services.Interfaces;
 using FlightApp.Util.Hotels.Interfaces;
 using FlightApp.Util.Mail.Interfaces;
@@ -13,13 +12,12 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using FlightApp.Util.Email;
-using FlightApp.Util.Hotels;
+using SQLitePCL;
 
 namespace FlightApp.Controllers
 {
     public class BookingController : Controller
     {
-        private readonly FlightsDbContext _dbContext;
         private readonly IEmailSend _emailSender;
         private readonly ICreatePDF _createPDF;
         private readonly IWebHostEnvironment _webHostEnvironment;
@@ -28,9 +26,12 @@ namespace FlightApp.Controllers
         private readonly IBookingHistoryService _bookingHistoryService;
         private readonly IHotelService _hotelService;
         private readonly IHolidayPriceService _holidayPriceService;
+        private readonly IService<Booking> _bookingService;
+        private readonly IFlightService _flightService;
+        private readonly IPassengerService _passengerService;
+
 
         public BookingController(
-            FlightsDbContext dbContext,
             ITicketService ticketService,
             IEmailSend emailSender,
             IWebHostEnvironment webHostEnvironment,
@@ -38,9 +39,11 @@ namespace FlightApp.Controllers
             IMapper mapper,
             IBookingHistoryService bookingHistoryService,
             IHotelService hotelService,
-            IHolidayPriceService holidayPriceService) // Add IHolidayPriceService
+            IHolidayPriceService holidayPriceService,
+            IService<Booking> bookingService,
+            IFlightService flightService,
+            IPassengerService passengerService)
         {
-            _dbContext = dbContext;
             _emailSender = emailSender;
             _createPDF = createPDF;
             _webHostEnvironment = webHostEnvironment;
@@ -49,6 +52,9 @@ namespace FlightApp.Controllers
             _bookingHistoryService = bookingHistoryService;
             _hotelService = hotelService;
             _holidayPriceService = holidayPriceService;
+            _bookingService = bookingService;
+            _flightService = flightService;
+            _passengerService = passengerService;
         }
 
 
@@ -68,15 +74,13 @@ namespace FlightApp.Controllers
             {
                 UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
                 BookingTime = DateTime.Now,
-                PaymentStatus = false, // Not paid yet
+                PaymentStatus = false, 
                 TotalPrice = cart.ComputeTotalValue(),
-                Cart = cart // Add the cart to the view model
+                Cart = cart 
             };
 
-            // Process all routes in the cart
             foreach (var routeItem in cart.RouteItems)
             {
-                // Create a route view model for each route in the cart
                 var routeViewModel = new RouteViewModel
                 {
                     RouteId = routeItem.RouteId,
@@ -86,11 +90,10 @@ namespace FlightApp.Controllers
                     ArrivalTime = routeItem.ArrivalTime,
                     Layover1 = routeItem.Layover1,
                     Layover2 = routeItem.Layover2,
-                    Price = routeItem.TotalPrice, // This already includes holiday pricing
+                    Price = routeItem.TotalPrice,
                     Passengers = routeItem.Passengers?.ToList() ?? new List<PassengerVM>()
                 };
 
-                // Add flights to the route - USE THE ALREADY ADJUSTED PRICES from the cart
                 foreach (var flight in routeItem.Flights)
                 {
                     routeViewModel.Flights.Add(new FlightViewModel
@@ -100,15 +103,13 @@ namespace FlightApp.Controllers
                         ArrivalCity = flight.ArrivalCity,
                         DepartureTime = flight.DepartureTime,
                         ArrivalTime = flight.ArrivalTime,
-                        Price = flight.Price ?? 0,  // This already has holiday pricing applied
-                        Notes = flight.Notes        // Add this line to transfer holiday pricing notes
+                        Price = flight.Price ?? 0,  
+                        Notes = flight.Notes   
                     });
                 }
 
-                // Add the route to the collection
                 confirmVM.Routes.Add(routeViewModel);
 
-                // Add all passengers to the main list too
                 if (routeItem.Passengers != null)
                 {
                     foreach (var passenger in routeItem.Passengers)
@@ -118,7 +119,6 @@ namespace FlightApp.Controllers
                 }
             }
 
-            // For backward compatibility, set the first route info as the main properties
             if (confirmVM.Routes.FirstOrDefault() is var firstRoute && firstRoute != null)
             {
                 confirmVM.RouteId = firstRoute.RouteId;
@@ -155,25 +155,20 @@ namespace FlightApp.Controllers
                 List<Ticket> allCreatedTickets = new List<Ticket>();
                 Dictionary<int, string> routeDescriptions = new Dictionary<int, string>();
 
-                // Process each route in the cart
                 foreach (var routeItem in cart.RouteItems)
                 {
-                    // Create a new booking
                     var booking = new Booking
                     {
                         UserId = userId ?? string.Empty,
                         BookingTime = DateTime.Now,
-                        PaymentStatus = true, // Payment confirmed
+                        PaymentStatus = true, 
                         RouteId = routeItem.RouteId,
-                        FlightId = null // This is a route booking, not a direct flight booking
+                        FlightId = null
                     };
-
-                    await _dbContext.Bookings.AddAsync(booking);
-                    await _dbContext.SaveChangesAsync(); // Save to get the booking ID
+                    await _bookingService.AddAsync(booking);
 
                     savedBookingIds.Add(booking.BookingId);
 
-                    // Save route description for email
                     string routeDescription = $"{routeItem.DepartureCity} to {routeItem.ArrivalCity}";
                     if (!string.IsNullOrEmpty(routeItem.Layover1))
                     {
@@ -185,14 +180,9 @@ namespace FlightApp.Controllers
                     }
                     routeDescriptions[booking.BookingId] = routeDescription;
 
-                    // Process each passenger for each flight in the route
                     foreach (var flight in routeItem.Flights)
                     {
-                        // Get flight capacity
-                        var flightDetails = await _dbContext.Flights
-                            .Include(f => f.DepartureCityNavigation)
-                            .Include(f => f.ArrivalCityNavigation)
-                            .FirstOrDefaultAsync(f => f.FlightId == flight.FlightId);
+                        var flightDetails = await _flightService.GetFlightByIDAsync(flight.FlightId);
 
                         if (flightDetails == null)
                         {
@@ -202,23 +192,17 @@ namespace FlightApp.Controllers
 
                         int maxSeats = flightDetails.Seating;
 
-                        // Get count of existing tickets to determine seat numbers
-                        var bookedSeatsCount = await _dbContext.Tickets
-                            .Where(t => t.FlightId == flight.FlightId)
-                            .CountAsync();
+                        var bookedSeatsCount = await _ticketService.GetCountByFlightIDAsync(flight.FlightId);
 
-                        // Check if there are enough seats available
                         if (bookedSeatsCount + routeItem.Passengers.Count > maxSeats)
                         {
                             TempData["Error"] = $"Not enough seats available on flight {flight.FlightId}.";
                             return RedirectToAction("ConfirmBooking");
                         }
 
-                        // Create tickets for each passenger
                         int nextSeatNumber = bookedSeatsCount + 1;
                         foreach (var passenger in routeItem.Passengers)
                         {
-                            // Create ticket with BookingId set
                             var ticket = new Ticket
                             {
                                 FlightId = flight.FlightId,
@@ -229,16 +213,15 @@ namespace FlightApp.Controllers
                                 BookingId = booking.BookingId
                             };
 
-                            await _dbContext.Tickets.AddAsync(ticket);
+                            await _ticketService.AddAsync(ticket);
                             allCreatedTickets.Add(ticket);
                         }
                     }
 
-                    // Add passengers to booking relationship
+
                     foreach (var passenger in routeItem.Passengers)
                     {
-                        var dbPassenger = await _dbContext.Passengers
-                            .FirstOrDefaultAsync(p => p.PassengerId == passenger.PassengerId);
+                        var dbPassenger = await _passengerService.FindByIdAsync(passenger.PassengerId);
 
                         if (dbPassenger != null)
                         {
@@ -247,14 +230,9 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                // Process each individual flight in the cart
                 foreach (var flightItem in cart.FlightItems)
                 {
-                    // Get flight details
-                    var flightDetails = await _dbContext.Flights
-                        .Include(f => f.DepartureCityNavigation)
-                        .Include(f => f.ArrivalCityNavigation)
-                        .FirstOrDefaultAsync(f => f.FlightId == flightItem.FlightId);
+                    var flightDetails = await _flightService.GetFlightByIDAsync(flightItem.FlightId);
 
                     if (flightDetails == null)
                     {
@@ -262,44 +240,35 @@ namespace FlightApp.Controllers
                         continue;
                     }
 
-                    // Create a new booking for direct flight
                     var booking = new Booking
                     {
                         UserId = userId ?? string.Empty,
                         BookingTime = DateTime.Now,
                         PaymentStatus = true,
-                        FlightId = flightItem.FlightId, // Set the FlightId directly
-                        RouteId = null // This is a direct flight booking, not a route booking
+                        FlightId = flightItem.FlightId,
+                        RouteId = null
                     };
 
-                    await _dbContext.Bookings.AddAsync(booking);
-                    await _dbContext.SaveChangesAsync(); // Save to get the booking ID
+                    await _bookingService.AddAsync(booking);
 
                     savedBookingIds.Add(booking.BookingId);
 
-                    // Save flight description for email
                     string flightDescription = $"{flightItem.DepartureCity} to {flightItem.ArrivalCity}";
                     routeDescriptions[booking.BookingId] = flightDescription;
 
                     int maxSeats = flightDetails.Seating;
 
-                    // Get count of existing tickets to determine seat numbers
-                    var bookedSeatsCount = await _dbContext.Tickets
-                        .Where(t => t.FlightId == flightItem.FlightId)
-                        .CountAsync();
+                    var bookedSeatsCount = await _ticketService.GetCountByFlightIDAsync(flightItem.FlightId);
 
-                    // Check if there are enough seats available
                     if (bookedSeatsCount + flightItem.Passengers.Count > maxSeats)
                     {
                         TempData["Error"] = $"Not enough seats available on flight {flightItem.FlightId}.";
                         return RedirectToAction("ConfirmBooking");
                     }
 
-                    // Create tickets for each passenger
                     int nextSeatNumber = bookedSeatsCount + 1;
                     foreach (var passenger in flightItem.Passengers)
                     {
-                        // Create ticket with BookingId set
                         var ticket = new Ticket
                         {
                             FlightId = flightItem.FlightId,
@@ -310,15 +279,13 @@ namespace FlightApp.Controllers
                             BookingId = booking.BookingId
                         };
 
-                        await _dbContext.Tickets.AddAsync(ticket);
+                        await _ticketService.AddAsync(ticket);
                         allCreatedTickets.Add(ticket);
                     }
 
-                    // Add passengers to booking relationship
                     foreach (var passenger in flightItem.Passengers)
                     {
-                        var dbPassenger = await _dbContext.Passengers
-                            .FirstOrDefaultAsync(p => p.PassengerId == passenger.PassengerId);
+                        var dbPassenger = await _passengerService.FindByIdAsync(passenger.PassengerId);
 
                         if (dbPassenger != null)
                         {
@@ -327,38 +294,24 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                await _dbContext.SaveChangesAsync();
-
-                // Send confirmation emails to each passenger with their tickets
                 var passengerGroups = allCreatedTickets
                     .GroupBy(t => t.PassengerId)
                     .ToList();
 
                 foreach (var passengerGroup in passengerGroups)
                 {
-                    var passenger = await _dbContext.Passengers
-                        .FirstOrDefaultAsync(p => p.PassengerId == passengerGroup.Key);
+                    var passenger = await _passengerService.FindByIdAsync(passengerGroup.Key);
 
                     if (passenger != null && !string.IsNullOrEmpty(passenger.Email))
                     {
-                        // Group tickets by booking
                         var bookingTickets = passengerGroup
                             .GroupBy(t => t.BookingId)
                             .ToDictionary(g => g.Key, g => g.ToList());
 
-                        // Get all full ticket data for this passenger
                         var fullTickets = new List<Ticket>();
                         foreach (var ticket in passengerGroup)
                         {
-                            var fullTicket = await _dbContext.Tickets
-                                .Include(t => t.Passenger)
-                                .Include(t => t.Flight)
-                                    .ThenInclude(f => f.DepartureCityNavigation)
-                                .Include(t => t.Flight)
-                                    .ThenInclude(f => f.ArrivalCityNavigation)
-                                .Include(t => t.BookingClass)
-                                .Include(t => t.MealChoice)
-                                .FirstOrDefaultAsync(t => t.TicketId == ticket.TicketId);
+                            var fullTicket = await _ticketService.FindByIdAsync(ticket.TicketId);
 
                             if (fullTicket != null)
                             {
@@ -368,7 +321,6 @@ namespace FlightApp.Controllers
 
                         if (fullTickets.Count > 0)
                         {
-                            // Create combined route description for all bookings this passenger has
                             var passengerBookingIds = fullTickets.Select(t => t.BookingId).Distinct();
                             var combinedRoutes = new List<string>();
 
@@ -382,23 +334,19 @@ namespace FlightApp.Controllers
 
                             string routeDescription = string.Join(" and ", combinedRoutes);
 
-                            // Generate email HTML using the EmailTemplateService
                             string emailHtml = EmailTemplateService.GenerateBookingConfirmationEmail(
                                 passenger,
                                 routeDescription,
                                 fullTickets
                             );
 
-                            // Prepare list of PDF attachments
                             var attachments = new List<(string fileName, byte[] content, string contentType)>();
 
-                            // Generate all PDFs and add to attachments list
                             for (int i = 0; i < fullTickets.Count; i++)
                             {
                                 var ticket = fullTickets[i];
                                 var pdfStream = _createPDF.CreatePDFDocumentAsync(ticket);
 
-                                // Convert the stream to byte array
                                 byte[] pdfBytes;
                                 pdfStream.Position = 0;
                                 using (var memoryStream = new MemoryStream())
@@ -411,7 +359,6 @@ namespace FlightApp.Controllers
                                 attachments.Add((fileName, pdfBytes, "application/pdf"));
                             }
 
-                            // Send a single email with all ticket PDFs as attachments
                             await _emailSender.SendEmailWithAttachmentsAsync(
                                 passenger.Email,
                                 $"Your Zephyrus Airlines Tickets - {routeDescription}",
@@ -421,7 +368,6 @@ namespace FlightApp.Controllers
                     }
                 }
 
-                // Add each booking to booking history
                 foreach (var bookingId in savedBookingIds)
                 {
                     var bookingHistory = new BookingHistory
@@ -432,12 +378,9 @@ namespace FlightApp.Controllers
                     await _bookingHistoryService.AddAsync(bookingHistory);
                 }
 
-                // Clear the cart
                 var emptyCart = new ShoppingCartVM();
                 SaveCartToSession(emptyCart);
 
-                // Redirect to the first booking's confirmation page
-                // Include all related bookings to show them on the confirmation page
                 return RedirectToAction("BookingConfirmed", new
                 {
                     id = savedBookingIds.First(),
@@ -446,7 +389,6 @@ namespace FlightApp.Controllers
             }
             catch (DbUpdateException ex)
             {
-                // Get detailed error information including inner exceptions
                 string errorMsg = ex.Message;
                 var innerEx = ex.InnerException;
                 while (innerEx != null)
@@ -480,7 +422,6 @@ namespace FlightApp.Controllers
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     List<int> allBookingIds = new List<int> { id };
 
-                    // Parse related booking IDs if provided
                     if (!string.IsNullOrEmpty(relatedIds))
                     {
                         var relatedBookingIds = relatedIds.Split(',')
@@ -490,7 +431,6 @@ namespace FlightApp.Controllers
                         allBookingIds.AddRange(relatedBookingIds);
                     }
 
-                    // Create the view model
                     var confirmVM = new ConfirmBookingVM
                     {
                         BookingId = id,
@@ -502,58 +442,39 @@ namespace FlightApp.Controllers
                         DirectFlights = new List<DirectFlightViewModel>()
                     };
 
-                    // Process all bookings (primary and related)
                     foreach (var bookingId in allBookingIds)
                     {
-                        // Retrieve the booking with all related data
-                        var booking = await _dbContext.Bookings
-                            .Include(b => b.Route)
-                                .ThenInclude(r => r != null ? r.DepartureCity : null)
-                            .Include(b => b.Route)
-                                .ThenInclude(r => r != null ? r.ArrivalCity : null)
-                            .Include(b => b.Flight) // Include direct flight if applicable
-                                .ThenInclude(f => f != null ? f.DepartureCityNavigation : null)
-                            .Include(b => b.Flight)
-                                .ThenInclude(f => f != null ? f.ArrivalCityNavigation : null)
-                            .Include(b => b.Passengers)
-                            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+                    var booking = await _bookingService.FindByIdAsync(bookingId);
 
                         if (booking == null) continue;
 
-                        // Fixed hotel retrieval code
                         string? cityApiId = null;
+                        DateOnly date = DateOnly.FromDateTime(DateTime.Now);
                         if (booking.Route?.ArrivalCity?.ApiId != null)
                         {
                             cityApiId = booking.Route.ArrivalCity.ApiId.ToString();
+                            date = DateOnly.FromDateTime((DateTime)booking.Route.DepartureTime);
                         }
                         else if (booking.Flight?.ArrivalCityNavigation?.ApiId != null)
                         {
                             cityApiId = booking.Flight.ArrivalCityNavigation.ApiId.ToString();
-                        }
+                        date = DateOnly.FromDateTime((DateTime)booking.Flight.DepartureTime);
+                    }
+                   if (booking != null)
+                   {
+                        hotels = await GetHotelVMList(cityApiId, date);
+                    }
 
-                        // Get all tickets for this booking
-                        var tickets = await _dbContext.Tickets
-                            .Include(t => t.Passenger)
-                            .Include(t => t.BookingClass)
-                            .Include(t => t.Flight)
-                                .ThenInclude(f => f.DepartureCityNavigation)
-                            .Include(t => t.Flight)
-                                .ThenInclude(f => f.ArrivalCityNavigation)
-                            .Include(t => t.MealChoice)
-                            .Where(t => t.BookingId == bookingId)
-                            .ToListAsync();
-
-                        // Dictionary to store holiday factors for each flight
+                    var tickets = await _ticketService.GetTicketsByBookingIdAsync(bookingId);
+                    
                         Dictionary<int, string> holidayNotes = new Dictionary<int, string>();
 
-                        // Calculate total price for this booking with holiday factors
                         double bookingTotal = 0;
                         foreach (var ticket in tickets)
                         {
                             double flightPrice = ticket.Flight.Price;
                             double bookingClassFactor = ticket.BookingClass?.PriceFactor ?? 1.0;
 
-                            // Calculate holiday factor if available
                             if (ticket.Flight.DepartureTime.HasValue)
                             {
                                 double holidayFactor = await _holidayPriceService.GetHolidayPriceFactor(
@@ -562,10 +483,8 @@ namespace FlightApp.Controllers
 
                                 if (Math.Abs(holidayFactor - 1.0) > 0.01)
                                 {
-                                    // Apply holiday factor to flight price
                                     flightPrice *= holidayFactor;
 
-                                    // Store holiday note for this flight
                                     if (!holidayNotes.ContainsKey(ticket.FlightId))
                                     {
                                         holidayNotes[ticket.FlightId] = $"Holiday pricing applied (x{holidayFactor:F2})";
@@ -573,13 +492,11 @@ namespace FlightApp.Controllers
                                 }
                             }
 
-                            // Apply booking class factor
                             bookingTotal += flightPrice * bookingClassFactor;
                         }
 
                         confirmVM.TotalPrice += bookingTotal;
 
-                        // Add tickets to the view model with complete flight details
                         foreach (var ticket in tickets)
                         {
                             var ticketVM = new TicketVM
@@ -598,14 +515,12 @@ namespace FlightApp.Controllers
                                 BookingClassName = ticket.BookingClass?.Description,
                                 MealChoiceType = ticket.MealChoice?.Type,
                                 BookingId = bookingId,
-                                // Add holiday notes if they exist
                                 Notes = holidayNotes.TryGetValue(ticket.FlightId, out string? note) ? note : null
                             };
 
                             confirmVM.Tickets.Add(ticketVM);
                         }
 
-                        // Process passengers
                         foreach (var passenger in booking.Passengers)
                         {
                             var passengerVM = new PassengerVM
@@ -617,7 +532,6 @@ namespace FlightApp.Controllers
                                 DateOfBirth = passenger.Birthdate.ToDateTime(TimeOnly.MinValue)
                             };
 
-                            // Get passenger's booking class from their tickets
                             var passengerTickets = tickets.Where(t => t.PassengerId == passenger.PassengerId).ToList();
                             if (passengerTickets.Any())
                             {
@@ -625,7 +539,6 @@ namespace FlightApp.Controllers
                                 passengerVM.BookingClassId = firstTicket.BookingClassId;
                                 passengerVM.BookingClassName = firstTicket.BookingClass?.Description;
 
-                                // Add ticket details to passenger for easy reference
                                 passengerVM.TicketDetails = passengerTickets.Select(t => new TicketDetailVM
                                 {
                                     TicketId = t.TicketId,
@@ -637,22 +550,18 @@ namespace FlightApp.Controllers
                                     ArrivalTime = t.Flight.ArrivalTime,
                                     SeatNumber = t.SeatNumber,
                                     BookingClassName = t.BookingClass?.Description ?? "Standard",
-                                    // Add holiday notes
                                     Notes = holidayNotes.TryGetValue(t.FlightId, out string? note) ? note : null
                                 }).ToList();
                             }
 
-                            // Add to main passengers list if not already there
                             if (!confirmVM.Passengers.Any(p => p.PassengerId == passenger.PassengerId))
                             {
                                 confirmVM.Passengers.Add(passengerVM);
                             }
                         }
 
-                        // Check if this is a route booking or a direct flight booking
                         if (booking.RouteId.HasValue && booking.Route != null)
                         {
-                            // This is a route booking
                             var layovers = await GetLayoversForBooking(booking);
 
                             var routeViewModel = new RouteViewModel
@@ -668,7 +577,6 @@ namespace FlightApp.Controllers
                                 BookingId = bookingId
                             };
 
-                            // Add flights associated with this route
                             foreach (var ticket in tickets.GroupBy(t => t.FlightId).Select(g => g.First()))
                             {
                                 routeViewModel.Flights.Add(new FlightViewModel
@@ -679,12 +587,10 @@ namespace FlightApp.Controllers
                                     DepartureTime = ticket.Flight?.DepartureTime,
                                     ArrivalTime = ticket.Flight?.ArrivalTime,
                                     Price = ticket.Flight.Price,
-                                    // Add holiday notes
                                     Notes = holidayNotes.TryGetValue(ticket.FlightId, out string? note) ? note : null
                                 });
                             }
 
-                            // Add passengers for this route
                             var routePassengers = booking.Passengers.Select(p =>
                             {
                                 var pVM = confirmVM.Passengers.FirstOrDefault(vm => vm.PassengerId == p.PassengerId);
@@ -705,7 +611,6 @@ namespace FlightApp.Controllers
                         }
                         else if (booking.FlightId.HasValue && booking.Flight != null)
                         {
-                            // Calculate holiday factor for direct flight if applicable
                             string? directFlightNote = null;
                             if (booking.Flight.DepartureTime.HasValue)
                             {
@@ -719,7 +624,6 @@ namespace FlightApp.Controllers
                                 }
                             }
 
-                            // This is a direct flight booking
                             var directFlightViewModel = new DirectFlightViewModel
                             {
                                 FlightId = booking.FlightId.Value,
@@ -732,7 +636,6 @@ namespace FlightApp.Controllers
                                 Notes = directFlightNote
                             };
 
-                            // Add passengers for this flight
                             var flightPassengers = booking.Passengers.Select(p =>
                             {
                                 var pVM = confirmVM.Passengers.FirstOrDefault(vm => vm.PassengerId == p.PassengerId);
@@ -753,7 +656,6 @@ namespace FlightApp.Controllers
                         }
                     }
 
-                    // For backward compatibility, set info from the first route or flight
                     if (confirmVM.Routes.FirstOrDefault() is var firstRoute && firstRoute != null)
                     {
                         confirmVM.RouteId = firstRoute.RouteId;
@@ -804,15 +706,7 @@ namespace FlightApp.Controllers
         {
             try
             {
-                var ticket = await _dbContext.Tickets
-                    .Include(t => t.Passenger)
-                    .Include(t => t.Flight)
-                        .ThenInclude(f => f.DepartureCityNavigation)
-                    .Include(t => t.Flight)
-                        .ThenInclude(f => f.ArrivalCityNavigation)
-                    .Include(t => t.BookingClass)
-                    .Include(t => t.MealChoice)
-                    .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+                var ticket = await _ticketService.FindByIdAsync(ticketId);
 
                 if (ticket == null)
                 {
@@ -866,35 +760,24 @@ namespace FlightApp.Controllers
 
         private async Task<(string? layover1, string? layover2)> GetLayoversForBooking(Booking booking)
         {
-            // Get all tickets for this booking
-            var bookingTickets = await _dbContext.Tickets
-                .Include(t => t.Flight)
-                    .ThenInclude(f => f.DepartureCityNavigation)
-                .Include(t => t.Flight)
-                    .ThenInclude(f => f.ArrivalCityNavigation)
-                .Where(t => t.BookingId == booking.BookingId)
-                .ToListAsync();
+            var bookingTickets = await _ticketService.GetTicketsByBookingIdAsync(booking.BookingId);
 
-            // Group by flight to get unique flights
             var flights = bookingTickets
                 .Select(t => t.Flight)
                 .Distinct()
                 .OrderBy(f => f.DepartureTime)
                 .ToList();
 
-            // Extract layover information based on flight order
             string? layover1 = null;
             string? layover2 = null;
 
             if (flights.Count >= 2)
             {
-                // For routes with at least 1 layover
                 layover1 = flights[0].ArrivalCityNavigation?.CityName;
             }
 
             if (flights.Count >= 3)
             {
-                // For routes with at least 2 layovers
                 layover2 = flights[1].ArrivalCityNavigation?.CityName;
             }
 
@@ -902,36 +785,86 @@ namespace FlightApp.Controllers
         }
 
 
-        public async Task<List<HotelVM>> GetHotelVMList(string? cityApiID)
+        public async Task<List<HotelVM>> GetHotelVMList(string cityApiID, DateOnly apiArrivalDate)
         {
-            List<HotelVM> hotels = new List<HotelVM>();
 
-            // Return empty list if cityApiID is null
-            if (string.IsNullOrEmpty(cityApiID))
-            {
-                return hotels;
-            }
 
-            try
+            var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID, apiArrivalDate);
+            if (lstHotelIds.Count > 0)
             {
-                var lstHotelIds = await _hotelService.GetHotelIdsAsync(cityApiID);
-                //var lstHotelIdsVm = _mapper.Map<List<HotelIDVm>>(lstHotelIds);
                 lstHotelIds = lstHotelIds.Slice(0, 3);
-
+                List<HotelVM> hotels = new List<HotelVM>();
                 foreach (var hotelId in lstHotelIds)
                 {
-                    var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id);
-                    var hotelvm = _mapper.Map<HotelVM>(hotel);
+                    var hotel = await _hotelService.GetHotelByIdAsync(hotelId.hotel_id, apiArrivalDate);
+                    var hotelvm = new HotelVM();
+                    if (hotel != null)
+                    {
+                        hotelvm = _mapper.Map<HotelVM>(hotel);
+                    }
+                    else
+                    {
+                        hotelvm = new HotelVM
+                        {
+                            Hotel_name = "citizenM Tower of London",
+                            Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                            Price = 640.375940574,
+                            PriceString = "€ 640",
+                            PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                            ReviewScore = 8.4,
+                            isApiData = false
+                        };
+                    }
+
                     hotels.Add(hotelvm);
                 }
+                return hotels;
             }
-            catch (Exception ex)
+            else
             {
-                // Log error but continue - hotels are non-critical
-                System.Diagnostics.Debug.WriteLine($"Error loading hotels: {ex.Message}");
+                List<HotelVM> hotels = new List<HotelVM>
+                {
+                     new HotelVM
+                    {
+                        Hotel_name = "Luxury 2 Bedroom Apartment- Lake view - Free Parking - Wembley Stadium 5KM",
+                        Url = "https://www.booking.com/hotel/gb/luxury-apartment-in-west-london-greater-london1.html",
+                        Price = 668.76582182,
+                        PriceString = "€ 669",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/573575015.jpg?k=ec4c50b3c31cae484b742726fc0584a9247df7cb6e7907f898569411b4599ffb&o="
+                        },
+                        ReviewScore = 10,
+                        isApiData = false
+                    },
+                    new HotelVM
+                    {
+                        Hotel_name = "citizenM Tower of London",
+                        Url = "https://www.booking.com/hotel/gb/citizenm-tower-of-london-london.html",
+                        Price = 640.375940574,
+                        PriceString = "€ 640",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/585088806.jpg?k=288d320226e95808f2cf8e288a7984f01e984ba8587e77cbc92470dd54b230b0&o="
+                        },
+                        ReviewScore = 8.4,
+                        isApiData = false
+                    },
+                     new HotelVM
+                    {
+                        Hotel_name = "Park Plaza County Hall London",
+                        Url = "https://www.booking.com/hotel/gb/park-plaza-county-hall.html",
+                        Price = 771.872168772,
+                        PriceString = "€ 772",
+                        PhotoUrls = new List<string>{
+                        "https://cf.bstatic.com/xdata/images/hotel/square60/511738782.jpg?k=4d2318d8a7b43166b4888c095a870e8f91faf2ba01937b2f4231722e79c35b79&o="
+                        },
+                        ReviewScore = 8.6,
+                        isApiData = false
+                    }
+                };
+                return hotels;
             }
-
-            return hotels;
         }
     }
 }
